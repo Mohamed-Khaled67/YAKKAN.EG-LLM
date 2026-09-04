@@ -1188,11 +1188,6 @@
 
 
 
-
-
-
-
-
 "use client";
 
 import Link from "next/link";
@@ -1213,49 +1208,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-
-// ============================================================
-// ANIMATION VARIANTS
-// ============================================================
-
-const fadeUp = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.45,
-      ease: "easeInOut",
-    },
-  },
-};
-
-const staggerContainer = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-const cardAnimation = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.45,
-      ease: "easeInOut",
-    },
-  },
-};
 
 // ============================================================
 // HOME PAGE
@@ -1281,6 +1233,7 @@ export default function HomePage() {
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Main glow */}
+
         <motion.div
           className="absolute right-[-180px] top-[80px] size-[450px] rounded-full bg-red-500/10 blur-[130px]"
           animate={{
@@ -1295,6 +1248,7 @@ export default function HomePage() {
         />
 
         {/* Left glow */}
+
         <motion.div
           className="absolute left-[-180px] top-[480px] size-[430px] rounded-full bg-rose-500/10 blur-[130px]"
           animate={{
@@ -1327,12 +1281,22 @@ export default function HomePage() {
             className="text-center lg:text-right"
             initial="hidden"
             animate="visible"
-            variants={staggerContainer}
           >
             {/* Badge */}
 
             <motion.div
-              variants={fadeUp}
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                duration: 0.45,
+                ease: "easeInOut",
+              }}
               className="mb-6 inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-gradient-to-r from-red-500/10 to-rose-500/5 px-4 py-2 text-xs font-semibold text-red-500 shadow-sm shadow-red-500/5"
             >
               <Sparkles className="size-3.5" />
@@ -1343,7 +1307,19 @@ export default function HomePage() {
             {/* Heading */}
 
             <motion.h1
-              variants={fadeUp}
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                duration: 0.45,
+                delay: 0.08,
+                ease: "easeInOut",
+              }}
               className="text-4xl font-black leading-[1.2] tracking-tight sm:text-5xl lg:text-6xl"
             >
               تعلّم بطريقة
@@ -1356,7 +1332,19 @@ export default function HomePage() {
             {/* Description */}
 
             <motion.p
-              variants={fadeUp}
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                duration: 0.45,
+                delay: 0.16,
+                ease: "easeInOut",
+              }}
               className="mx-auto mt-6 max-w-xl text-sm leading-8 text-muted-foreground sm:text-base lg:mx-0"
             >
               في YAKKAN-EG مش هتتعلم وبس. هتكتشف مهارات جديدة، تطور نفسك،
@@ -1368,7 +1356,19 @@ export default function HomePage() {
             ================================================== */}
 
             <motion.div
-              variants={fadeUp}
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                duration: 0.45,
+                delay: 0.24,
+                ease: "easeInOut",
+              }}
               className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start"
             >
               {/* REGISTER BUTTON */}
@@ -1434,11 +1434,25 @@ export default function HomePage() {
             ================================================== */}
 
             <motion.div
-              variants={fadeUp}
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                duration: 0.45,
+                delay: 0.32,
+                ease: "easeInOut",
+              }}
               className="mx-auto mt-10 grid max-w-lg grid-cols-3 divide-x divide-border rounded-2xl border border-border/50 bg-background/50 p-4 shadow-lg shadow-red-500/5 backdrop-blur-xl lg:mx-0"
             >
               <Stat number="+50" text="كورس" />
+
               <Stat number="+10K" text="طالب" />
+
               <Stat number="4.9" text="تقييم" icon />
             </motion.div>
           </motion.div>
@@ -1600,28 +1614,67 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <motion.div
             className="mx-auto max-w-2xl text-center"
-            initial="hidden"
-            whileInView="visible"
+            initial={{
+              opacity: 0,
+              y: 20,
+            }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+            }}
             viewport={{
               once: true,
               amount: 0.2,
             }}
-            variants={staggerContainer}
+            transition={{
+              duration: 0.45,
+              ease: "easeInOut",
+            }}
           >
             {/* Label */}
 
             <motion.div
-              variants={fadeUp}
+              initial={{
+                opacity: 0,
+                y: 15,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
+              viewport={{
+                once: true,
+              }}
+              transition={{
+                duration: 0.4,
+                ease: "easeOut",
+              }}
               className="mb-3 inline-flex items-center gap-2 bg-gradient-to-l from-red-500 to-rose-500 bg-clip-text text-xs font-bold text-transparent"
             >
               <Sparkles className="size-4 text-red-500" />
+
               لماذا YAKKAN-EG؟
             </motion.div>
 
             {/* Title */}
 
             <motion.h2
-              variants={fadeUp}
+              initial={{
+                opacity: 0,
+                y: 15,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
+              viewport={{
+                once: true,
+              }}
+              transition={{
+                duration: 0.4,
+                delay: 0.08,
+                ease: "easeOut",
+              }}
               className="text-3xl font-black tracking-tight sm:text-4xl"
             >
               كل ما تحتاجه في مكان واحد
@@ -1630,7 +1683,22 @@ export default function HomePage() {
             {/* Description */}
 
             <motion.p
-              variants={fadeUp}
+              initial={{
+                opacity: 0,
+                y: 15,
+              }}
+              whileInView={{
+                opacity: 1,
+                y: 0,
+              }}
+              viewport={{
+                once: true,
+              }}
+              transition={{
+                duration: 0.4,
+                delay: 0.16,
+                ease: "easeOut",
+              }}
               className="mt-4 text-sm leading-7 text-muted-foreground"
             >
               صممنا المنصة عشان تجمع بين التعلم، التطور، والمحتوى الممتع بدون
@@ -1640,34 +1708,28 @@ export default function HomePage() {
 
           {/* Feature cards */}
 
-          <motion.div
-            className="mt-14 grid gap-5 md:grid-cols-3"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{
-              once: true,
-              amount: 0.1,
-            }}
-            variants={staggerContainer}
-          >
+          <div className="mt-14 grid gap-5 md:grid-cols-3">
             <FeatureCard
               icon={<BookOpen />}
               title="تعلم بطريقة عملية"
               text="كورسات مرتبة ومحتوى عملي يساعدك تطبق اللي بتتعلمه."
+              delay={0}
             />
 
             <FeatureCard
               icon={<Trophy />}
               title="تابع تقدمك"
               text="اعرف مستواك، تابع إنجازاتك، واستمر في تطوير نفسك."
+              delay={0.08}
             />
 
             <FeatureCard
               icon={<Gamepad2 />}
               title="اتعلم واستمتع"
               text="استراحة ممتعة مع ألعاب وأنشطة ترفيهية داخل المنصة."
+              delay={0.16}
             />
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -1724,6 +1786,7 @@ export default function HomePage() {
               >
                 <div className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-[10px] font-bold text-red-500">
                   <BookOpen className="size-3" />
+
                   ابدأ التعلم
                 </div>
 
@@ -1778,40 +1841,35 @@ export default function HomePage() {
 
               {/* Info cards */}
 
-              <motion.div
-                className="grid grid-cols-2 gap-3"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{
-                  once: true,
-                  amount: 0.1,
-                }}
-                variants={staggerContainer}
-              >
+              <div className="grid grid-cols-2 gap-3">
                 <InfoCard
                   icon={<Users />}
                   number="+10K"
                   text="طالب"
+                  delay={0}
                 />
 
                 <InfoCard
                   icon={<BookOpen />}
                   number="+50"
                   text="كورس"
+                  delay={0.08}
                 />
 
                 <InfoCard
                   icon={<Clock3 />}
                   number="+500"
                   text="ساعة تعليم"
+                  delay={0.16}
                 />
 
                 <InfoCard
                   icon={<Star />}
                   number="4.9"
                   text="متوسط التقييم"
+                  delay={0.24}
                 />
-              </motion.div>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -1875,7 +1933,9 @@ function Stat({
       <div className="flex items-center justify-center gap-1">
         <span className="text-lg font-black">{number}</span>
 
-        {icon && <Star className="size-3 fill-orange-400 text-orange-400" />}
+        {icon && (
+          <Star className="size-3 fill-orange-400 text-orange-400" />
+        )}
       </div>
 
       <p className="mt-0.5 text-[9px] text-muted-foreground">{text}</p>
@@ -1891,20 +1951,34 @@ function FeatureCard({
   icon,
   title,
   text,
+  delay,
 }: {
   icon: React.ReactNode;
   title: string;
   text: string;
+  delay: number;
 }) {
   return (
     <motion.div
-      variants={cardAnimation}
-      whileHover={{
-        y: -5,
+      initial={{
+        opacity: 0,
+        y: 20,
+      }}
+      whileInView={{
+        opacity: 1,
+        y: 0,
+      }}
+      viewport={{
+        once: true,
+        amount: 0.1,
       }}
       transition={{
-        duration: 0.25,
+        duration: 0.45,
+        delay,
         ease: "easeOut",
+      }}
+      whileHover={{
+        y: -5,
       }}
       className="group rounded-2xl border border-border/50 bg-background/60 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-red-500/20 hover:shadow-xl hover:shadow-red-500/5"
     >
@@ -1946,20 +2020,34 @@ function InfoCard({
   icon,
   number,
   text,
+  delay,
 }: {
   icon: React.ReactNode;
   number: string;
   text: string;
+  delay: number;
 }) {
   return (
     <motion.div
-      variants={cardAnimation}
-      whileHover={{
-        y: -4,
+      initial={{
+        opacity: 0,
+        y: 20,
+      }}
+      whileInView={{
+        opacity: 1,
+        y: 0,
+      }}
+      viewport={{
+        once: true,
+        amount: 0.1,
       }}
       transition={{
-        duration: 0.25,
+        duration: 0.45,
+        delay,
         ease: "easeOut",
+      }}
+      whileHover={{
+        y: -4,
       }}
       className="group rounded-2xl border border-border/50 bg-background/60 p-5 backdrop-blur-xl transition-all duration-300 hover:border-red-500/20 hover:shadow-lg hover:shadow-red-500/5"
     >
