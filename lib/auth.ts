@@ -1,4 +1,3 @@
-
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 
@@ -12,6 +11,15 @@ import { env } from "./env"
 import { resend } from "./resend"
 
 export const auth = betterAuth({
+  // ============================================================
+  // TRUSTED ORIGINS
+  // ============================================================
+
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://yakkan-eg-llm-bpgr.vercel.app",
+  ],
+
   // ============================================================
   // DATABASE
   // ============================================================
