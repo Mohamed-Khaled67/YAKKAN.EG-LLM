@@ -1,3 +1,4 @@
+
 import { notFound } from "next/navigation"
 
 import { prisma } from "@/lib/db"
@@ -95,6 +96,7 @@ export default async function CurriculumPage({
         videoUrl: lesson.videoUrl,
         videoKey: lesson.videoKey,
         videoType: lesson.videoType as "IMAGE" | "VIDEO" | null,
+        isFree: lesson.isFree,
       })),
     })),
   }
@@ -105,3 +107,4 @@ export default async function CurriculumPage({
 
   return <CurriculumManager course={serializedCourse} />
 }
+

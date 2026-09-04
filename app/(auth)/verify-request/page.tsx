@@ -1,9 +1,17 @@
+"use client"
 
-"use client";
-
-import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import {
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react"
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation"
+import Link from "next/link"
 
 import {
   ArrowRight,
@@ -13,22 +21,26 @@ import {
   Mail,
   RefreshCw,
   ShieldCheck,
-} from "lucide-react";
+} from "lucide-react"
 
-import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button"
+import { authClient } from "@/lib/auth-client"
+import { toast } from "sonner"
 
-export default function VerifyRequest() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+// ============================================================
+// VERIFY REQUEST CONTENT
+// ============================================================
+
+function VerifyRequestContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   // ============================================================
   // URL PARAMETERS
   // ============================================================
 
-  const email = searchParams.get("email") || "";
-  const name = searchParams.get("name") || "";
+  const email = searchParams.get("email") || ""
+  const name = searchParams.get("name") || ""
 
   // ============================================================
   // STATE
@@ -41,39 +53,43 @@ export default function VerifyRequest() {
     "",
     "",
     "",
-  ]);
+  ])
 
-  const [isPending, startTransition] = useTransition();
+  const [isPending, startTransition] =
+    useTransition()
 
-  const [resendPending, startResendTransition] =
-    useTransition();
+  const [
+    resendPending,
+    startResendTransition,
+  ] = useTransition()
 
-  const [countdown, setCountdown] = useState(60);
+  const [countdown, setCountdown] =
+    useState(60)
 
   const inputRefs =
-    useRef<(HTMLInputElement | null)[]>([]);
+    useRef<(HTMLInputElement | null)[]>([])
 
   // ============================================================
   // COUNTDOWN
   // ============================================================
 
   useEffect(() => {
-    if (countdown <= 0) return;
+    if (countdown <= 0) return
 
     const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
+      setCountdown((prev) => prev - 1)
+    }, 1000)
 
-    return () => clearInterval(timer);
-  }, [countdown]);
+    return () => clearInterval(timer)
+  }, [countdown])
 
   // ============================================================
   // FOCUS FIRST INPUT
   // ============================================================
 
   useEffect(() => {
-    inputRefs.current[0]?.focus();
-  }, []);
+    inputRefs.current[0]?.focus()
+  }, [])
 
   // ============================================================
   // HANDLE OTP INPUT
@@ -83,54 +99,53 @@ export default function VerifyRequest() {
     index: number,
     value: string
   ) {
-    // Only numbers
-    const number = value.replace(/\D/g, "");
+    const number = value.replace(/\D/g, "")
 
     if (!number) {
-      const newOtp = [...otp];
+      const newOtp = [...otp]
 
-      newOtp[index] = "";
+      newOtp[index] = ""
 
-      setOtp(newOtp);
+      setOtp(newOtp)
 
-      return;
+      return
     }
 
     // Handle paste / multiple numbers
     if (number.length > 1) {
       const digits = number
         .slice(0, 6)
-        .split("");
+        .split("")
 
-      const newOtp = [...otp];
+      const newOtp = [...otp]
 
       digits.forEach((digit, i) => {
         if (index + i < 6) {
-          newOtp[index + i] = digit;
+          newOtp[index + i] = digit
         }
-      });
+      })
 
-      setOtp(newOtp);
+      setOtp(newOtp)
 
       const nextIndex = Math.min(
         index + digits.length,
         5
-      );
+      )
 
-      inputRefs.current[nextIndex]?.focus();
+      inputRefs.current[nextIndex]?.focus()
 
-      return;
+      return
     }
 
-    const newOtp = [...otp];
+    const newOtp = [...otp]
 
-    newOtp[index] = number;
+    newOtp[index] = number
 
-    setOtp(newOtp);
+    setOtp(newOtp)
 
     // Move to next input
     if (index < 5) {
-      inputRefs.current[index + 1]?.focus();
+      inputRefs.current[index + 1]?.focus()
     }
   }
 
@@ -144,19 +159,19 @@ export default function VerifyRequest() {
   ) {
     if (e.key === "Backspace") {
       if (otp[index]) {
-        const newOtp = [...otp];
+        const newOtp = [...otp]
 
-        newOtp[index] = "";
+        newOtp[index] = ""
 
-        setOtp(newOtp);
+        setOtp(newOtp)
       } else if (index > 0) {
-        inputRefs.current[index - 1]?.focus();
+        inputRefs.current[index - 1]?.focus()
 
-        const newOtp = [...otp];
+        const newOtp = [...otp]
 
-        newOtp[index - 1] = "";
+        newOtp[index - 1] = ""
 
-        setOtp(newOtp);
+        setOtp(newOtp)
       }
     }
 
@@ -164,14 +179,14 @@ export default function VerifyRequest() {
       e.key === "ArrowLeft" &&
       index > 0
     ) {
-      inputRefs.current[index - 1]?.focus();
+      inputRefs.current[index - 1]?.focus()
     }
 
     if (
       e.key === "ArrowRight" &&
       index < 5
     ) {
-      inputRefs.current[index + 1]?.focus();
+      inputRefs.current[index + 1]?.focus()
     }
   }
 
@@ -182,24 +197,24 @@ export default function VerifyRequest() {
   function handleVerify(
     e: React.FormEvent
   ) {
-    e.preventDefault();
+    e.preventDefault()
 
-    const code = otp.join("");
+    const code = otp.join("")
 
     if (code.length !== 6) {
       toast.error(
         "من فضلك أدخل رمز التحقق المكون من 6 أرقام"
-      );
+      )
 
-      return;
+      return
     }
 
     if (!email) {
       toast.error(
         "البريد الإلكتروني غير موجود"
-      );
+      )
 
-      return;
+      return
     }
 
     startTransition(async () => {
@@ -220,26 +235,26 @@ export default function VerifyRequest() {
               name
                 ? "تم إنشاء حسابك بنجاح 🎉"
                 : "تم تسجيل الدخول بنجاح 🎉"
-            );
+            )
 
-            router.push("/");
+            router.push("/")
 
-            router.refresh();
+            router.refresh()
           },
 
           onError: (error: {
             error: {
-              message: string;
-            };
+              message: string
+            }
           }) => {
             toast.error(
               error.error.message ||
                 "رمز التحقق غير صحيح"
-            );
+            )
           },
         },
-      });
-    });
+      })
+    })
   }
 
   // ============================================================
@@ -248,7 +263,7 @@ export default function VerifyRequest() {
 
   function handleResend() {
     if (countdown > 0 || !email) {
-      return;
+      return
     }
 
     startResendTransition(async () => {
@@ -261,9 +276,9 @@ export default function VerifyRequest() {
           onSuccess: () => {
             toast.success(
               "تم إرسال رمز جديد إلى بريدك الإلكتروني"
-            );
+            )
 
-            setCountdown(60);
+            setCountdown(60)
 
             setOtp([
               "",
@@ -272,20 +287,20 @@ export default function VerifyRequest() {
               "",
               "",
               "",
-            ]);
+            ])
 
-            inputRefs.current[0]?.focus();
+            inputRefs.current[0]?.focus()
           },
 
           onError: (error) => {
             toast.error(
               error.error.message ||
                 "حدث خطأ أثناء إرسال الرمز"
-            );
+            )
           },
         },
-      });
-    });
+      })
+    })
   }
 
   // ============================================================
@@ -294,7 +309,6 @@ export default function VerifyRequest() {
 
   return (
     <div className="relative w-full">
-
       {/* Background Glow */}
 
       <div
@@ -327,7 +341,6 @@ export default function VerifyRequest() {
           sm:p-7
         "
       >
-
         {/* Top Gradient */}
 
         <div
@@ -348,7 +361,6 @@ export default function VerifyRequest() {
         {/* Icon */}
 
         <div className="mb-5 flex justify-center">
-
           <div
             className="
               relative
@@ -363,7 +375,6 @@ export default function VerifyRequest() {
               shadow-lg
             "
           >
-
             <div
               className="
                 absolute
@@ -393,15 +404,12 @@ export default function VerifyRequest() {
             >
               <Lock className="size-2.5 text-primary" />
             </div>
-
           </div>
-
         </div>
 
         {/* Header */}
 
         <div className="text-center">
-
           <h1 className="text-2xl font-bold tracking-tight">
             تحقق من بريدك الإلكتروني
           </h1>
@@ -439,7 +447,6 @@ export default function VerifyRequest() {
               py-1.5
             "
           >
-
             <Mail className="size-3.5 text-primary" />
 
             <span
@@ -453,9 +460,7 @@ export default function VerifyRequest() {
             >
               {email || "البريد الإلكتروني"}
             </span>
-
           </div>
-
         </div>
 
         {/* OTP Form */}
@@ -464,7 +469,6 @@ export default function VerifyRequest() {
           onSubmit={handleVerify}
           className="mt-7"
         >
-
           <div
             dir="ltr"
             className="
@@ -474,12 +478,11 @@ export default function VerifyRequest() {
               sm:gap-3
             "
           >
-
             {otp.map((digit, index) => (
               <input
                 key={index}
                 ref={(el) => {
-                  inputRefs.current[index] = el;
+                  inputRefs.current[index] = el
                 }}
                 value={digit}
                 onChange={(e) =>
@@ -517,7 +520,6 @@ export default function VerifyRequest() {
                 "
               />
             ))}
-
           </div>
 
           {/* Verify Button */}
@@ -540,7 +542,6 @@ export default function VerifyRequest() {
               hover:shadow-lg
             "
           >
-
             {isPending ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
@@ -556,15 +557,12 @@ export default function VerifyRequest() {
                   : "تأكيد الرمز وتسجيل الدخول"}
               </>
             )}
-
           </Button>
-
         </form>
 
         {/* Resend */}
 
         <div className="mt-5 text-center">
-
           <p className="text-xs text-muted-foreground">
             لم يصلك الرمز؟
           </p>
@@ -591,7 +589,6 @@ export default function VerifyRequest() {
               disabled:opacity-50
             "
           >
-
             {resendPending ? (
               <>
                 <Loader2 className="size-3.5 animate-spin" />
@@ -612,9 +609,7 @@ export default function VerifyRequest() {
                 إعادة إرسال الرمز
               </>
             )}
-
           </button>
-
         </div>
 
         {/* Change Email */}
@@ -628,9 +623,12 @@ export default function VerifyRequest() {
             text-center
           "
         >
-
           <Link
-            href={name ? "/register" : "/login"}
+            href={
+              name
+                ? "/register"
+                : "/login"
+            }
             className="
               inline-flex
               items-center
@@ -641,13 +639,10 @@ export default function VerifyRequest() {
               hover:text-foreground
             "
           >
-
             <ArrowRight className="size-3.5" />
 
             استخدام بريد إلكتروني آخر
-
           </Link>
-
         </div>
 
         {/* Security */}
@@ -663,582 +658,46 @@ export default function VerifyRequest() {
             text-muted-foreground
           "
         >
-
           <Lock className="size-3" />
 
           رمز التحقق صالح لفترة محدودة
-
         </div>
-
       </div>
     </div>
-  );
+  )
 }
 
+// ============================================================
+// PAGE
+// ============================================================
+
+export default function VerifyRequest() {
+  return (
+    <Suspense
+      fallback={
+        <div className="relative w-full">
+          <div
+            className="
+              relative
+              flex
+              min-h-[300px]
+              items-center
+              justify-center
+              rounded-3xl
+              border
+              border-border/50
+              bg-background/75
+              shadow-2xl
+              backdrop-blur-2xl
+            "
+          >
+            <Loader2 className="size-6 animate-spin text-primary" />
+          </div>
+        </div>
+      }
+    >
+      <VerifyRequestContent />
+    </Suspense>
+  )
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// "use client";
-
-// import { useEffect, useRef, useState, useTransition } from "react";
-// import { useRouter, useSearchParams } from "next/navigation";
-// import Link from "next/link";
-
-// import {
-//   ArrowRight,
-//   CheckCircle2,
-//   Loader2,
-//   Lock,
-//   Mail,
-//   RefreshCw,
-//   ShieldCheck,
-// } from "lucide-react";
-
-// import { Button } from "@/components/ui/button";
-// import { authClient } from "@/lib/auth-client";
-// import { toast } from "sonner";
-
-// export default function VerifyRequest() {
-//   const router = useRouter();
-//   const searchParams = useSearchParams();
-
-//   const email = searchParams.get("email") || "";
-
-//   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-//   const [isPending, startTransition] = useTransition();
-//   const [resendPending, startResendTransition] = useTransition();
-
-//   const [countdown, setCountdown] = useState(60);
-
-//   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-//   /*
-//    * Countdown
-//    */
-//   useEffect(() => {
-//     if (countdown <= 0) return;
-
-//     const timer = setInterval(() => {
-//       setCountdown((prev) => prev - 1);
-//     }, 1000);
-
-//     return () => clearInterval(timer);
-//   }, [countdown]);
-
-//   /*
-//    * Focus first input
-//    */
-//   useEffect(() => {
-//     inputRefs.current[0]?.focus();
-//   }, []);
-
-//   /*
-//    * Handle OTP input
-//    */
-//   function handleChange(
-//     index: number,
-//     value: string
-//   ) {
-//     // Only numbers
-//     const number = value.replace(/\D/g, "");
-
-//     if (!number) {
-//       const newOtp = [...otp];
-//       newOtp[index] = "";
-//       setOtp(newOtp);
-//       return;
-//     }
-
-//     // Handle paste / multiple numbers
-//     if (number.length > 1) {
-//       const digits = number.slice(0, 6).split("");
-
-//       const newOtp = [...otp];
-
-//       digits.forEach((digit, i) => {
-//         if (index + i < 6) {
-//           newOtp[index + i] = digit;
-//         }
-//       });
-
-//       setOtp(newOtp);
-
-//       const nextIndex = Math.min(
-//         index + digits.length,
-//         5
-//       );
-
-//       inputRefs.current[nextIndex]?.focus();
-
-//       return;
-//     }
-
-//     const newOtp = [...otp];
-//     newOtp[index] = number;
-
-//     setOtp(newOtp);
-
-//     // Move to next input
-//     if (index < 5) {
-//       inputRefs.current[index + 1]?.focus();
-//     }
-//   }
-
-//   /*
-//    * Handle keyboard
-//    */
-//   function handleKeyDown(
-//     index: number,
-//     e: React.KeyboardEvent<HTMLInputElement>
-//   ) {
-//     if (e.key === "Backspace") {
-//       if (otp[index]) {
-//         const newOtp = [...otp];
-//         newOtp[index] = "";
-//         setOtp(newOtp);
-//       } else if (index > 0) {
-//         inputRefs.current[index - 1]?.focus();
-
-//         const newOtp = [...otp];
-//         newOtp[index - 1] = "";
-//         setOtp(newOtp);
-//       }
-//     }
-
-//     if (e.key === "ArrowLeft" && index > 0) {
-//       inputRefs.current[index - 1]?.focus();
-//     }
-
-//     if (e.key === "ArrowRight" && index < 5) {
-//       inputRefs.current[index + 1]?.focus();
-//     }
-//   }
-
-//   /*
-//    * Verify OTP
-//    */
-//   function handleVerify(e: React.FormEvent) {
-//     e.preventDefault();
-
-//     const code = otp.join("");
-
-//     if (code.length !== 6) {
-//       toast.error("من فضلك أدخل رمز التحقق المكون من 6 أرقام");
-//       return;
-//     }
-
-//     if (!email) {
-//       toast.error("البريد الإلكتروني غير موجود");
-//       return;
-//     }
-
-//     startTransition(async () => {
-//       await authClient.signIn.emailOtp({
-//         email,
-//         otp: code,
-//         fetchOptions: {
-//           onSuccess: () => {
-//             toast.success("تم تسجيل الدخول بنجاح 🎉");
-
-//             router.push("/");
-//             router.refresh();
-//           },
-
-//           onError: (error: { error: { message: any; }; }) => {
-//             toast.error(
-//               error.error.message || "رمز التحقق غير صحيح"
-//             );
-//           },
-//         },
-//       });
-//     });
-//   }
-
-//   /*
-//    * Resend OTP
-//    */
-//   function handleResend() {
-//     if (countdown > 0 || !email) return;
-
-//     startResendTransition(async () => {
-//       await authClient.emailOtp.sendVerificationOtp({
-//         email,
-//         type: "sign-in",
-
-//         fetchOptions: {
-//           onSuccess: () => {
-//             toast.success("تم إرسال رمز جديد إلى بريدك الإلكتروني");
-
-//             setCountdown(60);
-//             setOtp(["", "", "", "", "", ""]);
-
-//             inputRefs.current[0]?.focus();
-//           },
-
-//           onError: (error) => {
-//             toast.error(
-//               error.error.message || "حدث خطأ أثناء إرسال الرمز"
-//             );
-//           },
-//         },
-//       });
-//     });
-//   }
-
-//   return (
-//     <div className="relative w-full">
-//       {/* Background Glow */}
-//       <div
-//         className="
-//           pointer-events-none
-//           absolute
-//           -top-24
-//           left-1/2
-//           size-56
-//           -translate-x-1/2
-//           rounded-full
-//           bg-primary/15
-//           blur-[80px]
-//         "
-//       />
-
-//       {/* Card */}
-//       <div
-//         className="
-//           relative
-//           overflow-hidden
-//           rounded-3xl
-//           border
-//           border-border/50
-//           bg-background/75
-//           p-5
-//           shadow-2xl
-//           backdrop-blur-2xl
-//           sm:p-7
-//         "
-//       >
-//         {/* Top Gradient */}
-//         <div
-//           className="
-//             absolute
-//             left-0
-//             top-0
-//             h-1
-//             w-full
-//             rounded-t-3xl
-//             bg-gradient-to-r
-//             from-transparent
-//             via-primary
-//             to-transparent
-//           "
-//         />
-
-//         {/* Icon */}
-//         <div className="mb-5 flex justify-center">
-//           <div
-//             className="
-//               relative
-//               flex
-//               size-16
-//               items-center
-//               justify-center
-//               rounded-2xl
-//               bg-primary/10
-//               ring-1
-//               ring-primary/20
-//               shadow-lg
-//             "
-//           >
-//             <div
-//               className="
-//                 absolute
-//                 inset-1
-//                 rounded-xl
-//                 border
-//                 border-primary/10
-//               "
-//             />
-
-//             <ShieldCheck className="size-8 text-primary" />
-
-//             <div
-//               className="
-//                 absolute
-//                 -right-1
-//                 -top-1
-//                 flex
-//                 size-5
-//                 items-center
-//                 justify-center
-//                 rounded-full
-//                 bg-background
-//                 ring-1
-//                 ring-border
-//               "
-//             >
-//               <Lock className="size-2.5 text-primary" />
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Header */}
-//         <div className="text-center">
-//           <h1 className="text-2xl font-bold tracking-tight">
-//             تحقق من بريدك الإلكتروني
-//           </h1>
-
-//           <p className="mx-auto mt-2 max-w-sm text-xs leading-6 text-muted-foreground">
-//             أرسلنا رمز تحقق مكون من 6 أرقام إلى البريد الإلكتروني
-//           </p>
-
-//           {/* Email */}
-//           <div
-//             className="
-//               mx-auto
-//               mt-3
-//               flex
-//               w-fit
-//               max-w-full
-//               items-center
-//               gap-2
-//               rounded-full
-//               border
-//               border-border/60
-//               bg-muted/40
-//               px-3
-//               py-1.5
-//             "
-//           >
-//             <Mail className="size-3.5 text-primary" />
-
-//             <span
-//               dir="ltr"
-//               className="max-w-[230px] truncate text-xs font-medium"
-//             >
-//               {email || "البريد الإلكتروني"}
-//             </span>
-//           </div>
-//         </div>
-
-//         {/* OTP Form */}
-//         <form
-//           onSubmit={handleVerify}
-//           className="mt-7"
-//         >
-//           <div
-//             dir="ltr"
-//             className="flex justify-center gap-2 sm:gap-3"
-//           >
-//             {otp.map((digit, index) => (
-//               <input
-//                 key={index}
-//                 ref={(el) => {
-//                   inputRefs.current[index] = el;
-//                 }}
-//                 value={digit}
-//                 onChange={(e) =>
-//                   handleChange(index, e.target.value)
-//                 }
-//                 onKeyDown={(e) =>
-//                   handleKeyDown(index, e)
-//                 }
-//                 inputMode="numeric"
-//                 maxLength={6}
-//                 autoComplete="one-time-code"
-//                 disabled={isPending}
-//                 className="
-//                   size-11
-//                   rounded-xl
-//                   border
-//                   border-border/70
-//                   bg-background
-//                   text-center
-//                   text-lg
-//                   font-bold
-//                   outline-none
-//                   transition-all
-//                   duration-200
-//                   focus:border-primary
-//                   focus:ring-4
-//                   focus:ring-primary/10
-//                   sm:size-12
-//                 "
-//               />
-//             ))}
-//           </div>
-
-//           {/* Verify Button */}
-//           <Button
-//             type="submit"
-//             disabled={isPending || otp.join("").length !== 6}
-//             className="
-//               mt-6
-//               h-11
-//               w-full
-//               gap-2
-//               font-semibold
-//               shadow-md
-//               transition-all
-//               hover:-translate-y-0.5
-//               hover:shadow-lg
-//             "
-//           >
-//             {isPending ? (
-//               <>
-//                 <Loader2 className="size-4 animate-spin" />
-//                 جاري التحقق...
-//               </>
-//             ) : (
-//               <>
-//                 <CheckCircle2 className="size-4" />
-//                 تأكيد الرمز وتسجيل الدخول
-//               </>
-//             )}
-//           </Button>
-//         </form>
-
-//         {/* Resend */}
-//         <div className="mt-5 text-center">
-//           <p className="text-xs text-muted-foreground">
-//             لم يصلك الرمز؟
-//           </p>
-
-//           <button
-//             type="button"
-//             onClick={handleResend}
-//             disabled={
-//               countdown > 0 ||
-//               resendPending ||
-//               !email
-//             }
-//             className="
-//               mt-2
-//               inline-flex
-//               items-center
-//               gap-1.5
-//               text-xs
-//               font-semibold
-//               text-primary
-//               transition
-//               hover:underline
-//               disabled:cursor-not-allowed
-//               disabled:opacity-50
-//             "
-//           >
-//             {resendPending ? (
-//               <>
-//                 <Loader2 className="size-3.5 animate-spin" />
-//                 جاري الإرسال...
-//               </>
-//             ) : countdown > 0 ? (
-//               <>
-//                 <RefreshCw className="size-3.5" />
-//                 إعادة الإرسال بعد {countdown} ثانية
-//               </>
-//             ) : (
-//               <>
-//                 <RefreshCw className="size-3.5" />
-//                 إعادة إرسال الرمز
-//               </>
-//             )}
-//           </button>
-//         </div>
-
-//         {/* Change Email */}
-//         <div className="mt-5 border-t border-border/50 pt-4 text-center">
-//           <Link
-//             href="/login"
-//             className="
-//               inline-flex
-//               items-center
-//               gap-1.5
-//               text-xs
-//               text-muted-foreground
-//               transition
-//               hover:text-foreground
-//             "
-//           >
-//             <ArrowRight className="size-3.5" />
-//             استخدام بريد إلكتروني آخر
-//           </Link>
-//         </div>
-
-//         {/* Security */}
-//         <div
-//           className="
-//             mt-4
-//             flex
-//             items-center
-//             justify-center
-//             gap-1.5
-//             text-[10px]
-//             text-muted-foreground
-//           "
-//         >
-//           <Lock className="size-3" />
-//           رمز التحقق صالح لفترة محدودة
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }

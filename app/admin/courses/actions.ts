@@ -11,9 +11,6 @@ import { courseSchema } from "@/lib/zodSchema"
 
 const createCourseActionSchema =
   courseSchema
-    .omit({
-      imageFile: true,
-    })
     .extend({
       mediaKey: z
         .string()
@@ -192,15 +189,3 @@ export async function createCourse(
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-

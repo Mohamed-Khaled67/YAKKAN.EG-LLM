@@ -178,9 +178,9 @@ export async function GET(
 
         select: {
           lessonId: true,
-          progressPercent: true,
+          progress: true,
           completed: true,
-          lastPosition: true,
+          watchedSeconds: true,
         },
       })
 
@@ -212,7 +212,7 @@ export async function GET(
       const percentage =
         item?.completed
           ? 100
-          : item?.progressPercent ?? 0
+          : item?.progress ?? 0
 
       totalProgress += percentage
 
@@ -251,14 +251,16 @@ export async function GET(
           return {
             lessonId: lesson.id,
 
+            // Keep frontend response name
             progressPercent:
-              item?.progressPercent ?? 0,
+              item?.progress ?? 0,
 
             completed:
               item?.completed ?? false,
 
+            // Keep frontend response name
             lastPosition:
-              item?.lastPosition ?? 0,
+              item?.watchedSeconds ?? 0,
           }
         }
       ),
