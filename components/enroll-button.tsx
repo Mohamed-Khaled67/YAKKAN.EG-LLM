@@ -1,187 +1,5 @@
-// "use client"
 
-// import { useState } from "react"
-// import { useRouter } from "next/navigation"
-// import { Loader2, ShoppingCart, CheckCircle2 } from "lucide-react"
 
-// type EnrollButtonProps = {
-//   courseId: string
-//   price: number
-// }
-
-// export default function EnrollButton({
-//   courseId,
-//   price,
-// }: EnrollButtonProps) {
-//   const router = useRouter()
-
-//   const [loading, setLoading] = useState(false)
-//   const [error, setError] = useState("")
-//   const [success, setSuccess] = useState(false)
-
-//   async function handleEnroll() {
-//     try {
-//       setLoading(true)
-//       setError("")
-
-//       const response = await fetch(
-//         `/api/courses/${courseId}/enroll`,
-//         {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//         }
-//       )
-
-//       const data = await response.json()
-
-//       if (response.status === 401) {
-//         router.push(
-//           `/login?callbackUrl=/courses/${courseId}`
-//         )
-//         return
-//       }
-
-//       if (!response.ok) {
-//         throw new Error(
-//           data?.message || "حدث خطأ أثناء التسجيل"
-//         )
-//       }
-
-//       setSuccess(true)
-
-//       router.refresh()
-//     } catch (error) {
-//       console.error("ENROLL_ERROR:", error)
-
-//       setError(
-//         error instanceof Error
-//           ? error.message
-//           : "حدث خطأ أثناء التسجيل"
-//       )
-//     } finally {
-//       setLoading(false)
-//     }
-//   }
-
-//   // ==========================================================
-//   // SUCCESS
-//   // ==========================================================
-
-//   if (success) {
-//     return (
-//       <div className="space-y-3">
-//         <div
-//           className="
-//             flex
-//             h-12
-//             w-full
-//             items-center
-//             justify-center
-//             gap-2
-//             rounded-xl
-//             bg-emerald-500/10
-//             text-sm
-//             font-black
-//             text-emerald-600
-//             dark:text-emerald-400
-//           "
-//         >
-//           <CheckCircle2 className="size-4" />
-//           تم التسجيل في الكورس بنجاح
-//         </div>
-
-//         <button
-//           type="button"
-//           onClick={() =>
-//             router.push(`/courses/${courseId}`)
-//           }
-//           className="
-//             w-full
-//             text-center
-//             text-xs
-//             font-bold
-//             text-muted-foreground
-//             transition-colors
-//             hover:text-foreground
-//           "
-//         >
-//           الذهاب إلى الكورس
-//         </button>
-//       </div>
-//     )
-//   }
-
-//   // ==========================================================
-//   // BUTTON
-//   // ==========================================================
-
-//   return (
-//     <div>
-//       <button
-//         type="button"
-//         onClick={handleEnroll}
-//         disabled={loading}
-//         className="
-//           flex
-//           h-12
-//           w-full
-//           items-center
-//           justify-center
-//           gap-2
-//           rounded-xl
-//           bg-red-500
-//           text-sm
-//           font-black
-//           text-white
-//           shadow-lg
-//           shadow-red-500/20
-//           transition-all
-//           hover:bg-red-600
-//           hover:shadow-xl
-//           hover:shadow-red-500/25
-//           disabled:cursor-not-allowed
-//           disabled:opacity-60
-//         "
-//       >
-//         {loading ? (
-//           <>
-//             <Loader2 className="size-4 animate-spin" />
-//             جاري التسجيل...
-//           </>
-//         ) : (
-//           <>
-//             <ShoppingCart className="size-4" />
-//             {price === 0
-//               ? "التسجيل في الكورس"
-//               : "شراء الكورس"}
-//           </>
-//         )}
-//       </button>
-
-//       {error && (
-//         <div
-//           className="
-//             mt-3
-//             rounded-lg
-//             border
-//             border-red-500/20
-//             bg-red-500/10
-//             px-3
-//             py-2
-//             text-center
-//             text-xs
-//             font-semibold
-//             text-red-500
-//           "
-//         >
-//           {error}
-//         </div>
-//       )}
-//     </div>
-//   )
-// }
 
 
 
@@ -202,6 +20,7 @@ import {
   CheckCircle2,
   Loader2,
   ShoppingCart,
+  CreditCard,
 } from "lucide-react"
 
 // ============================================================
@@ -226,9 +45,10 @@ export default function EnrollButton({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [paymentCreated, setPaymentCreated] = useState(false)
 
   // ==========================================================
-  // ENROLL
+  // HANDLE ACTION
   // ==========================================================
 
   async function handleEnroll() {
@@ -241,22 +61,88 @@ export default function EnrollButton({
       setError("")
 
       // ========================================================
-      // SEND REQUEST
+      // FREE COURSE
       // ========================================================
 
-      const response = await fetch(
-        `/api/courses/${courseId}/enroll`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+      if (price === 0) {
+        const response = await fetch(
+          `/api/courses/${courseId}/enroll`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+
+        let data: any = null
+
+        try {
+          data = await response.json()
+        } catch {
+          data = null
         }
-      )
+
+        console.log("ENROLL API RESPONSE:", {
+          status: response.status,
+          ok: response.ok,
+          data,
+        })
+
+        // ------------------------------------------------------
+        // NOT AUTHENTICATED
+        // ------------------------------------------------------
+
+        if (response.status === 401) {
+          router.push(
+            `/login?callbackUrl=/courses/${courseId}`
+          )
+
+          return
+        }
+
+        // ------------------------------------------------------
+        // API ERROR
+        // ------------------------------------------------------
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              `فشل التسجيل - HTTP ${response.status}`
+          )
+        }
+
+        // ------------------------------------------------------
+        // SUCCESS
+        // ------------------------------------------------------
+
+        if (!data?.success) {
+          throw new Error(
+            data?.message ||
+              "تعذر التسجيل في الكورس"
+          )
+        }
+
+        setSuccess(true)
+
+        router.refresh()
+
+        return
+      }
 
       // ========================================================
-      // READ RESPONSE
+      // PAID COURSE
       // ========================================================
+
+      const response = await fetch("/api/payments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          courseId,
+        }),
+      })
 
       let data: any = null
 
@@ -266,19 +152,15 @@ export default function EnrollButton({
         data = null
       }
 
-      // ========================================================
-      // DEBUG
-      // ========================================================
-
-      console.log("ENROLL API RESPONSE:", {
+      console.log("PAYMENT API RESPONSE:", {
         status: response.status,
         ok: response.ok,
         data,
       })
 
-      // ========================================================
+      // --------------------------------------------------------
       // NOT AUTHENTICATED
-      // ========================================================
+      // --------------------------------------------------------
 
       if (response.status === 401) {
         router.push(
@@ -288,58 +170,38 @@ export default function EnrollButton({
         return
       }
 
-      // ========================================================
+      // --------------------------------------------------------
       // API ERROR
-      // ========================================================
+      // --------------------------------------------------------
 
       if (!response.ok) {
-        console.error("ENROLL API ERROR:", {
-          status: response.status,
-          statusText: response.statusText,
-          data,
-        })
-
         throw new Error(
           data?.message ||
-            `فشل التسجيل - HTTP ${response.status}`
+            `فشل إنشاء عملية الدفع - HTTP ${response.status}`
         )
       }
 
-      // ========================================================
-      // SUCCESS
-      // ========================================================
+      // --------------------------------------------------------
+      // PAYMENT CREATED
+      // --------------------------------------------------------
 
       if (!data?.success) {
-        console.error(
-          "ENROLL API RETURNED SUCCESS FALSE:",
-          data
-        )
-
         throw new Error(
           data?.message ||
-            "تعذر التسجيل في الكورس"
+            "تعذر إنشاء عملية الدفع"
         )
       }
 
-      // ========================================================
-      // SUCCESS STATE
-      // ========================================================
+      console.log("PAYMENT CREATED:", data)
 
-      setSuccess(true)
-
-      // تحديث بيانات الصفحة
-      router.refresh()
+      setPaymentCreated(true)
     } catch (error) {
-      // ========================================================
-      // ERROR
-      // ========================================================
-
-      console.error("ENROLL_ERROR:", error)
+      console.error("ENROLL/PAYMENT ERROR:", error)
 
       setError(
         error instanceof Error
           ? error.message
-          : "حدث خطأ أثناء التسجيل في الكورس"
+          : "حدث خطأ أثناء تنفيذ العملية"
       )
     } finally {
       setLoading(false)
@@ -347,7 +209,7 @@ export default function EnrollButton({
   }
 
   // ==========================================================
-  // SUCCESS UI
+  // FREE COURSE SUCCESS
   // ==========================================================
 
   if (success) {
@@ -396,6 +258,52 @@ export default function EnrollButton({
   }
 
   // ==========================================================
+  // PAYMENT CREATED
+  // ==========================================================
+
+  if (paymentCreated) {
+    return (
+      <div className="space-y-3">
+        <div
+          className="
+            flex
+            min-h-12
+            w-full
+            items-center
+            justify-center
+            gap-2
+            rounded-xl
+            bg-amber-500/10
+            px-4
+            py-3
+            text-center
+            text-sm
+            font-black
+            text-amber-600
+            dark:text-amber-400
+          "
+        >
+          <CreditCard className="size-4 shrink-0" />
+
+          تم إنشاء طلب الدفع بنجاح
+        </div>
+
+        <p
+          className="
+            text-center
+            text-xs
+            leading-6
+            text-muted-foreground
+          "
+        >
+          عملية الدفع جاهزة. سيتم ربطها بصفحة الدفع
+          الخاصة بـ Paymob في الخطوة التالية.
+        </p>
+      </div>
+    )
+  }
+
+  // ==========================================================
   // DEFAULT UI
   // ==========================================================
 
@@ -431,11 +339,17 @@ export default function EnrollButton({
           <>
             <Loader2 className="size-4 animate-spin" />
 
-            جاري التسجيل...
+            {price === 0
+              ? "جاري التسجيل..."
+              : "جاري تجهيز الدفع..."}
           </>
         ) : (
           <>
-            <ShoppingCart className="size-4" />
+            {price === 0 ? (
+              <ShoppingCart className="size-4" />
+            ) : (
+              <CreditCard className="size-4" />
+            )}
 
             {price === 0
               ? "التسجيل في الكورس"

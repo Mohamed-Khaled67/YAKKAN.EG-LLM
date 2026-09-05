@@ -1,10 +1,310 @@
+// generator client {
+//   provider = "prisma-client"
+//   output   = "../lib/generated/prisma"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+// }
+
+// // ============================================================
+// // TEST
+// // ============================================================
+
+// model Test {
+//   id   String @id @default(uuid())
+//   test String
+// }
+
+// // ============================================================
+// // USER
+// // ============================================================
+
+// model User {
+//   id            String     @id
+//   name          String
+//   email         String     @unique
+//   emailVerified Boolean    @default(false)
+//   image         String?
+//   role          String     @default("user")
+//   banned        Boolean    @default(false)
+//   createdAt     DateTime   @default(now())
+//   updatedAt     DateTime   @updatedAt
+
+//   accounts      Account[]
+//   sessions      Session[]
+//   enrollments   Enrollment[]
+//   lessonProgress LessonProgress[]
+// }
+
+// // ============================================================
+// // SESSION
+// // ============================================================
+
+// model Session {
+//   id             String   @id
+//   expiresAt      DateTime
+//   token          String   @unique
+//   createdAt      DateTime @default(now())
+//   updatedAt      DateTime @updatedAt
+//   ipAddress      String?
+//   userAgent      String?
+//   userId         String
+//   impersonatedBy String?
+
+//   user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+//   @@index([userId])
+//   @@map("session")
+// }
+
+// // ============================================================
+// // ACCOUNT
+// // ============================================================
+
+// model Account {
+//   id                    String    @id
+//   accountId             String
+//   providerId            String
+//   userId                String
+//   accessToken           String?
+//   refreshToken          String?
+//   idToken               String?
+//   accessTokenExpiresAt  DateTime?
+//   refreshTokenExpiresAt DateTime?
+//   scope                 String?
+//   password              String?
+//   createdAt             DateTime  @default(now())
+//   updatedAt             DateTime  @updatedAt
+
+//   user User @relation(fields: [userId], references: [id],onDelete: Cascade)
+
+//   @@index([userId])
+//   @@map("account")
+// }
+
+// // ============================================================
+// // VERIFICATION
+// // ============================================================
+
+// model Verification {
+//   id         String   @id
+//   identifier String
+//   value      String
+//   expiresAt  DateTime
+//   createdAt  DateTime @default(now())
+//   updatedAt  DateTime @updatedAt
+
+//   @@index([identifier])
+//   @@map("verification")
+// }
+
+// // ============================================================
+// // COURSE
+// // ============================================================
+
+// model Course {
+//   id             String         @id @default(uuid())
+//   title          String
+//   description    String?
+//   mediaUrl       String?
+//   mediaKey       String?
+//   mediaType      MediaType?
+//   price          Float          @default(0)
+//   level          CourseLevel    @default(BEGINNER)
+//   educationType  EducationType
+//   academicLevel  AcademicLevel
+//   semester       Semester
+//   secondaryTrack SecondaryTrack?
+//   subjectId      String
+//   isPublished    Boolean        @default(false)
+//   createdAt      DateTime       @default(now())
+//   updatedAt      DateTime       @updatedAt
+
+//   chapters    Chapter[]
+//   subject     Subject          @relation(fields: [subjectId],references: [id])
+//   enrollments Enrollment[]
+
+//   @@index([educationType])
+//   @@index([academicLevel])
+//   @@index([semester])
+//   @@index([secondaryTrack])
+//   @@index([subjectId])
+// }
+
+// // ============================================================
+// // ENROLLMENT
+// // ============================================================
+
+// model Enrollment {
+//   id         String   @id @default(uuid())
+//   userId     String
+//   courseId   String
+//   enrolledAt DateTime @default(now())
+
+//   user User @relation(fields: [userId],references: [id], onDelete: Cascade )
+
+//   course Course @relation(fields: [courseId],references: [id], onDelete: Cascade )
+
+//   @@unique([userId, courseId])
+//   @@index([userId])
+//   @@index([courseId])
+// }
+
+// // ============================================================
+// // CHAPTER
+// // ============================================================
+
+// model Chapter {
+//   id        String   @id @default(uuid())
+//   title     String
+//   position  Int      @default(0)
+//   courseId  String
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   course Course @relation(fields: [courseId],references: [id], onDelete: Cascade )
+
+//   lessons Lesson[]
+
+//   @@index([courseId])
+// }
+
+// // ============================================================
+// // LESSON
+// // ============================================================
+
+// model Lesson {
+//   id          String    @id @default(uuid())
+//   title       String
+//   description String?
+//   position    Int       @default(0)
+//   videoUrl    String?
+//   videoKey    String?
+//   videoType   MediaType?
+//   duration    Int?
+//   isFree      Boolean   @default(false)
+//   chapterId   String
+//   createdAt   DateTime  @default(now())
+//   updatedAt   DateTime  @updatedAt
+
+//   chapter Chapter @relation(fields: [chapterId],references: [id], onDelete: Cascade )
+
+//   progress LessonProgress[]
+
+//   @@index([chapterId])
+// }
+
+// // ============================================================
+// // LESSON PROGRESS
+// // ============================================================
+
+// model LessonProgress {
+//   id            String   @id @default(uuid())
+
+//   userId        String
+//   lessonId      String
+
+//   progress      Float    @default(0)
+//   watchedSeconds Float   @default(0)
+
+//   completed     Boolean  @default(false)
+//   completedAt   DateTime?
+
+//   createdAt     DateTime @default(now())
+//   updatedAt     DateTime @updatedAt
+
+//   user User @relation( fields: [userId],references: [id],onDelete: Cascade)
+
+//   lesson Lesson @relation( fields: [lessonId],references: [id],onDelete: Cascade)
+
+//   @@unique([userId, lessonId])
+//   @@index([userId])
+//   @@index([lessonId])
+// }
+
+// // ============================================================
+// // SUBJECT
+// // ============================================================
+
+// model Subject {
+//   id        String   @id @default(uuid())
+//   name      String
+//   code      String   @unique
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   courses Course[]
+// }
+
+// // ============================================================
+// // ENUMS
+// // ============================================================
+
+// enum CourseLevel {
+//   BEGINNER
+//   INTERMEDIATE
+//   ADVANCED
+// }
+
+// enum EducationType {
+//   UNIVERSITY
+//   SECONDARY
+// }
+
+// enum Semester {
+//   FIRST
+//   SECOND
+// }
+
+// enum AcademicLevel {
+//   UNIVERSITY_LEVEL_1
+//   UNIVERSITY_LEVEL_2
+//   UNIVERSITY_LEVEL_3
+//   UNIVERSITY_LEVEL_4
+//   SECONDARY_GRADE_1
+//   SECONDARY_GRADE_2
+//   SECONDARY_GRADE_3
+// }
+
+// enum SecondaryTrack {
+//   SCIENCE
+//   LITERARY
+//   SCIENCE_SCIENCES
+//   SCIENCE_MATH
+// }
+
+// enum MediaType {
+//   IMAGE
+//   VIDEO
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 generator client {
+
   provider = "prisma-client"
-  output   = "../lib/generated/prisma"
+
+  output = "../lib/generated/prisma"
+
 }
 
 datasource db {
+
   provider = "postgresql"
+
 }
 
 // ============================================================
@@ -12,8 +312,10 @@ datasource db {
 // ============================================================
 
 model Test {
+
   id   String @id @default(uuid())
   test String
+
 }
 
 // ============================================================
@@ -21,20 +323,23 @@ model Test {
 // ============================================================
 
 model User {
-  id            String     @id
-  name          String
-  email         String     @unique
-  emailVerified Boolean    @default(false)
-  image         String?
-  role          String     @default("user")
-  banned        Boolean    @default(false)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  enrollments   Enrollment[]
-  lessonProgress LessonProgress[]
+  id              String           @id
+  name            String
+  email           String           @unique
+  emailVerified   Boolean          @default(false)
+  image           String?
+  role            String           @default("user")
+  banned          Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  enrollments     Enrollment[]
+  lessonProgress  LessonProgress[]
+  payments        Payment[]
+
 }
 
 // ============================================================
@@ -42,6 +347,7 @@ model User {
 // ============================================================
 
 model Session {
+
   id             String   @id
   expiresAt      DateTime
   token          String   @unique
@@ -52,10 +358,12 @@ model Session {
   userId         String
   impersonatedBy String?
 
-  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  user User @relation( fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+
   @@map("session")
+
 }
 
 // ============================================================
@@ -63,6 +371,7 @@ model Session {
 // ============================================================
 
 model Account {
+
   id                    String    @id
   accountId             String
   providerId            String
@@ -77,10 +386,12 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id],onDelete: Cascade)
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
 
   @@index([userId])
+
   @@map("account")
+
 }
 
 // ============================================================
@@ -88,6 +399,7 @@ model Account {
 // ============================================================
 
 model Verification {
+
   id         String   @id
   identifier String
   value      String
@@ -96,7 +408,9 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
+
   @@map("verification")
+
 }
 
 // ============================================================
@@ -104,32 +418,36 @@ model Verification {
 // ============================================================
 
 model Course {
-  id             String         @id @default(uuid())
-  title          String
-  description    String?
-  mediaUrl       String?
-  mediaKey       String?
-  mediaType      MediaType?
-  price          Float          @default(0)
-  level          CourseLevel    @default(BEGINNER)
-  educationType  EducationType
-  academicLevel  AcademicLevel
-  semester       Semester
-  secondaryTrack SecondaryTrack?
-  subjectId      String
-  isPublished    Boolean        @default(false)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
 
-  chapters    Chapter[]
-  subject     Subject          @relation(fields: [subjectId],references: [id])
-  enrollments Enrollment[]
+  id              String          @id @default(uuid())
+  title           String
+  description     String?
+  mediaUrl        String?
+  mediaKey        String?
+  mediaType       MediaType?
+  price           Float           @default(0)
+  level           CourseLevel     @default(BEGINNER)
+  educationType   EducationType
+  academicLevel   AcademicLevel
+  semester        Semester
+  secondaryTrack  SecondaryTrack?
+  subjectId       String
+  isPublished     Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  chapters        Chapter[]
+  subject  Subject  @relation(fields: [subjectId],references: [id])
+
+  enrollments     Enrollment[]
+  payments        Payment[]
 
   @@index([educationType])
   @@index([academicLevel])
   @@index([semester])
   @@index([secondaryTrack])
   @@index([subjectId])
+
 }
 
 // ============================================================
@@ -137,18 +455,75 @@ model Course {
 // ============================================================
 
 model Enrollment {
+
   id         String   @id @default(uuid())
   userId     String
   courseId   String
   enrolledAt DateTime @default(now())
 
-  user User @relation(fields: [userId],references: [id], onDelete: Cascade )
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
 
-  course Course @relation(fields: [courseId],references: [id], onDelete: Cascade )
+  course Course @relation(fields: [courseId],references: [id],onDelete: Cascade)
 
   @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
+
+}
+
+// ============================================================
+// PAYMENT
+// ============================================================
+
+model Payment {
+
+  id String @id @default(uuid())
+
+  // ==========================================================
+  // USER / COURSE
+  // ==========================================================
+
+  userId   String
+  courseId String
+
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+  course Course @relation(fields: [courseId],references: [id],onDelete: Cascade)
+
+  // ==========================================================
+  // PAYMENT
+  // ==========================================================
+
+  amount   Float
+  currency String @default("EGP")
+
+  status PaymentStatus @default(PENDING)
+
+  // ==========================================================
+  // PAYMOB
+  // ==========================================================
+
+  paymobOrderId       String?
+  paymobTransactionId String?
+
+  // ==========================================================
+  // TIMESTAMPS
+  // ==========================================================
+
+  paidAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================================================
+  // INDEXES
+  // ==========================================================
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([status])
+  @@index([paymobOrderId])
+  @@index([paymobTransactionId])
+
 }
 
 // ============================================================
@@ -156,6 +531,7 @@ model Enrollment {
 // ============================================================
 
 model Chapter {
+
   id        String   @id @default(uuid())
   title     String
   position  Int      @default(0)
@@ -163,11 +539,12 @@ model Chapter {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  course Course @relation(fields: [courseId],references: [id], onDelete: Cascade )
+  course Course @relation(fields: [courseId],references: [id],onDelete: Cascade )
 
   lessons Lesson[]
 
   @@index([courseId])
+
 }
 
 // ============================================================
@@ -175,6 +552,7 @@ model Chapter {
 // ============================================================
 
 model Lesson {
+
   id          String    @id @default(uuid())
   title       String
   description String?
@@ -188,11 +566,12 @@ model Lesson {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  chapter Chapter @relation(fields: [chapterId],references: [id], onDelete: Cascade )
+  chapter Chapter @relation(fields: [chapterId],references: [id],onDelete: Cascade)
 
   progress LessonProgress[]
 
   @@index([chapterId])
+
 }
 
 // ============================================================
@@ -200,27 +579,25 @@ model Lesson {
 // ============================================================
 
 model LessonProgress {
-  id            String   @id @default(uuid())
 
-  userId        String
-  lessonId      String
+  id             String   @id @default(uuid())
+  userId         String
+  lessonId       String
+  progress       Float    @default(0)
+  watchedSeconds Float    @default(0)
+  completed      Boolean  @default(false)
+  completedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  progress      Float    @default(0)
-  watchedSeconds Float   @default(0)
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
 
-  completed     Boolean  @default(false)
-  completedAt   DateTime?
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user User @relation( fields: [userId],references: [id],onDelete: Cascade)
-
-  lesson Lesson @relation( fields: [lessonId],references: [id],onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId],references: [id],onDelete: Cascade)
 
   @@unique([userId, lessonId])
   @@index([userId])
   @@index([lessonId])
+
 }
 
 // ============================================================
@@ -228,6 +605,7 @@ model LessonProgress {
 // ============================================================
 
 model Subject {
+
   id        String   @id @default(uuid())
   name      String
   code      String   @unique
@@ -235,6 +613,7 @@ model Subject {
   updatedAt DateTime @updatedAt
 
   courses Course[]
+
 }
 
 // ============================================================
@@ -242,22 +621,29 @@ model Subject {
 // ============================================================
 
 enum CourseLevel {
+
   BEGINNER
   INTERMEDIATE
   ADVANCED
+
 }
 
 enum EducationType {
+
   UNIVERSITY
   SECONDARY
+
 }
 
 enum Semester {
+
   FIRST
   SECOND
+
 }
 
 enum AcademicLevel {
+
   UNIVERSITY_LEVEL_1
   UNIVERSITY_LEVEL_2
   UNIVERSITY_LEVEL_3
@@ -265,18 +651,34 @@ enum AcademicLevel {
   SECONDARY_GRADE_1
   SECONDARY_GRADE_2
   SECONDARY_GRADE_3
+
 }
 
 enum SecondaryTrack {
+
   SCIENCE
   LITERARY
   SCIENCE_SCIENCES
   SCIENCE_MATH
+
 }
 
 enum MediaType {
+
   IMAGE
   VIDEO
+
 }
 
+// ============================================================
+// PAYMENT STATUS
+// ============================================================
 
+enum PaymentStatus {
+
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+
+}

@@ -514,6 +514,7 @@
 
 
 
+
 import { NextResponse } from "next/server"
 import { DeleteObjectCommand } from "@aws-sdk/client-s3"
 
@@ -616,8 +617,7 @@ export async function PUT(
     // READ BODY
     // ==========================================================
 
-    const body =
-      await request.json()
+    const body = await request.json()
 
     const title =
       typeof body.title === "string"
@@ -645,14 +645,22 @@ export async function PUT(
         : null
 
     // ==========================================================
+    // FREE LESSON
+    // ==========================================================
+
+    const isFree =
+      typeof body.isFree === "boolean"
+        ? body.isFree
+        : false
+
+    // ==========================================================
     // VALIDATE TITLE
     // ==========================================================
 
     if (!title) {
       return NextResponse.json(
         {
-          error:
-            "اسم الدرس مطلوب",
+          error: "اسم الدرس مطلوب",
         },
         {
           status: 400,
@@ -667,8 +675,7 @@ export async function PUT(
     if (videoUrl && !videoKey) {
       return NextResponse.json(
         {
-          error:
-            "مفتاح الفيديو غير موجود",
+          error: "مفتاح الفيديو غير موجود",
         },
         {
           status: 400,
@@ -679,8 +686,7 @@ export async function PUT(
     if (videoKey && !videoUrl) {
       return NextResponse.json(
         {
-          error:
-            "رابط الفيديو غير موجود",
+          error: "رابط الفيديو غير موجود",
         },
         {
           status: 400,
@@ -690,14 +696,11 @@ export async function PUT(
 
     if (
       videoKey &&
-      !videoKey.startsWith(
-        "courses/videos/"
-      )
+      !videoKey.startsWith("courses/videos/")
     ) {
       return NextResponse.json(
         {
-          error:
-            "مسار الفيديو غير مسموح به",
+          error: "مسار الفيديو غير مسموح به",
         },
         {
           status: 403,
@@ -784,6 +787,10 @@ export async function PUT(
             newVideoKey
               ? videoType
               : null,
+
+          // IMPORTANT:
+          // Update free/paid status
+          isFree,
         },
       })
 

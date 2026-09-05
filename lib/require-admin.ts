@@ -12,9 +12,9 @@ export async function requireAdmin() {
     redirect("/login")
   }
 
-  if (session.user.role !== "admin") {
-    redirect("/")
-  }
+if (session.user.role !== "admin") {
+  redirect("/dashboard")
+}
 
   return session
 }
