@@ -682,3 +682,21 @@ enum PaymentStatus {
   CANCELLED
 
 }
+
+enum GalleryCategory {
+  GRADUATION
+  TRIPS
+  COURSES
+}
+
+model GalleryImage {
+  id        String          @id @default(uuid())
+  key       String
+  url       String
+  category  GalleryCategory
+  createdAt DateTime        @default(now())
+
+  @@index([category])
+  @@index([createdAt])
+}
+

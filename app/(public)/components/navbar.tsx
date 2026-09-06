@@ -621,26 +621,7 @@ export function Navbar() {
                   {/* SETTINGS */}
                   {/* ================================================= */}
 
-                  <Link
-                    href="/settings"
-                    className="
-                      flex
-                      items-center
-                      gap-3
-                      rounded-xl
-                      px-3
-                      py-2.5
-                      text-xs
-                      font-medium
-                      transition-all
-                      hover:bg-red-500/5
-                      hover:text-red-500
-                    "
-                  >
-                    <Settings className="size-4" />
-
-                    الإعدادات
-                  </Link>
+                
 
                   {/* Divider */}
 

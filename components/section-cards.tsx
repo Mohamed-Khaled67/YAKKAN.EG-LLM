@@ -1,6 +1,7 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
+
 import {
   Card,
   CardAction,
@@ -19,7 +20,39 @@ import {
   ActivityIcon,
 } from "lucide-react"
 
-export function SectionCards() {
+// ============================================================
+// TYPES
+// ============================================================
+
+export interface DashboardStats {
+  totalStudents: number
+  totalCourses: number
+  publishedCourses: number
+  totalEnrollments: number
+  totalLessons: number
+  newUsers: number
+  activeSessions: number
+  revenue: number
+  currentMonthEnrollments: number
+  previousMonthEnrollments: number
+  enrollmentGrowth: number
+}
+
+interface SectionCardsProps {
+  stats: DashboardStats
+}
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
+export function SectionCards({
+  stats,
+}: SectionCardsProps) {
+  const growth = stats.enrollmentGrowth
+
+  const isGrowthPositive = growth >= 0
+
   return (
     <div
       dir="rtl"
@@ -31,10 +64,10 @@ export function SectionCards() {
         @5xl/main:grid-cols-4
       "
     >
+      {/* =====================================================
+          REVENUE
+      ===================================================== */}
 
-      {/* =========================
-          إجمالي الإيرادات
-      ========================= */}
       <Card
         className="
           group relative overflow-hidden
@@ -51,7 +84,6 @@ export function SectionCards() {
           hover:shadow-red-500/10
         "
       >
-        {/* Gradient Effect */}
         <div
           className="
             pointer-events-none absolute
@@ -67,9 +99,7 @@ export function SectionCards() {
 
         <CardHeader className="relative">
           <div className="flex items-start justify-between gap-3">
-
             <div className="flex items-center gap-3">
-
               <div
                 className="
                   flex size-11 shrink-0 items-center justify-center
@@ -79,7 +109,6 @@ export function SectionCards() {
                   ring-1 ring-red-500/20
                   transition-all duration-300
                   group-hover:scale-105
-                  group-hover:bg-red-500/15
                 "
               >
                 <ActivityIcon className="size-5" />
@@ -91,6 +120,7 @@ export function SectionCards() {
                 </CardDescription>
 
                 <CardTitle
+                  dir="ltr"
                   className="
                     mt-1
                     text-2xl
@@ -99,10 +129,16 @@ export function SectionCards() {
                     @[250px]/card:text-3xl
                   "
                 >
-                  $1,250.00
+                  {stats.revenue.toLocaleString(
+                    "en-US",
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }
+                  )}{" "}
+                  EGP
                 </CardTitle>
               </div>
-
             </div>
 
             <CardAction>
@@ -117,31 +153,31 @@ export function SectionCards() {
                 "
               >
                 <TrendingUpIcon className="size-3.5" />
-                +12.5%
+                مدفوع
               </Badge>
             </CardAction>
-
           </div>
         </CardHeader>
 
         <CardFooter className="relative flex-col items-start gap-1.5 text-sm">
-
           <div className="flex items-center gap-2 font-medium">
-            <span>الإيرادات في ارتفاع هذا الشهر</span>
+            <span>
+              إجمالي المدفوعات الناجحة
+            </span>
+
             <TrendingUpIcon className="size-4 text-red-500" />
           </div>
 
           <div className="text-muted-foreground">
-            مقارنة بآخر 6 أشهر
+            يتم احتساب المدفوعات التي حالتها PAID فقط
           </div>
-
         </CardFooter>
       </Card>
 
+      {/* =====================================================
+          NEW USERS
+      ===================================================== */}
 
-      {/* =========================
-          عملاء جدد
-      ========================= */}
       <Card
         className="
           group relative overflow-hidden
@@ -158,7 +194,6 @@ export function SectionCards() {
           hover:shadow-rose-500/10
         "
       >
-
         <div
           className="
             pointer-events-none absolute
@@ -167,17 +202,12 @@ export function SectionCards() {
             rounded-full
             bg-rose-500/10
             blur-3xl
-            transition-all duration-500
-            group-hover:bg-rose-500/20
           "
         />
 
         <CardHeader className="relative">
-
           <div className="flex items-start justify-between gap-3">
-
             <div className="flex items-center gap-3">
-
               <div
                 className="
                   flex size-11 shrink-0 items-center justify-center
@@ -193,7 +223,6 @@ export function SectionCards() {
               </div>
 
               <div>
-
                 <CardDescription className="text-sm">
                   مستخدمون جدد
                 </CardDescription>
@@ -207,15 +236,14 @@ export function SectionCards() {
                     @[250px]/card:text-3xl
                   "
                 >
-                  1,234
+                  {stats.newUsers.toLocaleString(
+                    "en-US"
+                  )}
                 </CardTitle>
-
               </div>
-
             </div>
 
             <CardAction>
-
               <Badge
                 variant="outline"
                 className="
@@ -226,40 +254,32 @@ export function SectionCards() {
                   dark:text-red-400
                 "
               >
-                <TrendingDownIcon className="size-3.5" />
-                -20%
+                <UserPlusIcon className="size-3.5" />
+                هذا الشهر
               </Badge>
-
             </CardAction>
-
           </div>
-
         </CardHeader>
 
         <CardFooter className="relative flex-col items-start gap-1.5 text-sm">
-
           <div className="flex items-center gap-2 font-medium">
-
             <span>
-              انخفاض بنسبة 20% خلال هذه الفترة
+              طلاب جدد خلال الشهر الحالي
             </span>
 
-            <TrendingDownIcon className="size-4 text-red-500" />
-
+            <UserPlusIcon className="size-4 text-red-500" />
           </div>
 
           <div className="text-muted-foreground">
-            يحتاج معدل اكتساب المستخدمين إلى اهتمام
+            لا يتم احتساب حسابات الأدمن
           </div>
-
         </CardFooter>
-
       </Card>
 
+      {/* =====================================================
+          ACTIVE USERS
+      ===================================================== */}
 
-      {/* =========================
-          الحسابات النشطة
-      ========================= */}
       <Card
         className="
           group relative overflow-hidden
@@ -276,7 +296,6 @@ export function SectionCards() {
           hover:shadow-red-600/10
         "
       >
-
         <div
           className="
             pointer-events-none absolute
@@ -285,17 +304,12 @@ export function SectionCards() {
             rounded-full
             bg-red-600/10
             blur-3xl
-            transition-all duration-500
-            group-hover:bg-red-600/20
           "
         />
 
         <CardHeader className="relative">
-
           <div className="flex items-start justify-between gap-3">
-
             <div className="flex items-center gap-3">
-
               <div
                 className="
                   flex size-11 shrink-0 items-center justify-center
@@ -311,7 +325,6 @@ export function SectionCards() {
               </div>
 
               <div>
-
                 <CardDescription className="text-sm">
                   الحسابات النشطة
                 </CardDescription>
@@ -325,15 +338,14 @@ export function SectionCards() {
                     @[250px]/card:text-3xl
                   "
                 >
-                  45,678
+                  {stats.activeSessions.toLocaleString(
+                    "en-US"
+                  )}
                 </CardTitle>
-
               </div>
-
             </div>
 
             <CardAction>
-
               <Badge
                 variant="outline"
                 className="
@@ -344,40 +356,32 @@ export function SectionCards() {
                   dark:text-red-400
                 "
               >
-                <TrendingUpIcon className="size-3.5" />
-                +12.5%
+                <UsersIcon className="size-3.5" />
+                الآن
               </Badge>
-
             </CardAction>
-
           </div>
-
         </CardHeader>
 
         <CardFooter className="relative flex-col items-start gap-1.5 text-sm">
-
           <div className="flex items-center gap-2 font-medium">
-
             <span>
-              معدل تفاعل قوي من المستخدمين
+              جلسات تسجيل الدخول الحالية
             </span>
 
-            <TrendingUpIcon className="size-4 text-red-500" />
-
+            <ActivityIcon className="size-4 text-red-500" />
           </div>
 
           <div className="text-muted-foreground">
-            التفاعل يتجاوز الأهداف المحددة
+            يتم الاعتماد على الجلسات غير المنتهية
           </div>
-
         </CardFooter>
-
       </Card>
 
+      {/* =====================================================
+          GROWTH
+      ===================================================== */}
 
-      {/* =========================
-          معدل النمو
-      ========================= */}
       <Card
         className="
           group relative overflow-hidden
@@ -394,7 +398,6 @@ export function SectionCards() {
           hover:shadow-red-500/10
         "
       >
-
         <div
           className="
             pointer-events-none absolute
@@ -403,17 +406,12 @@ export function SectionCards() {
             rounded-full
             bg-red-500/10
             blur-3xl
-            transition-all duration-500
-            group-hover:bg-red-500/20
           "
         />
 
         <CardHeader className="relative">
-
           <div className="flex items-start justify-between gap-3">
-
             <div className="flex items-center gap-3">
-
               <div
                 className="
                   flex size-11 shrink-0 items-center justify-center
@@ -429,12 +427,12 @@ export function SectionCards() {
               </div>
 
               <div>
-
                 <CardDescription className="text-sm">
                   معدل النمو
                 </CardDescription>
 
                 <CardTitle
+                  dir="ltr"
                   className="
                     mt-1
                     text-2xl
@@ -443,55 +441,57 @@ export function SectionCards() {
                     @[250px]/card:text-3xl
                   "
                 >
-                  4.5%
+                  {growth.toFixed(1)}%
                 </CardTitle>
-
               </div>
-
             </div>
 
             <CardAction>
-
               <Badge
                 variant="outline"
-                className="
+                className={`
                   gap-1
-                  border-red-500/20
-                  bg-red-500/5
-                  text-red-600
-                  dark:text-red-400
-                "
+                  ${
+                    isGrowthPositive
+                      ? "border-green-500/20 bg-green-500/5 text-green-600 dark:text-green-400"
+                      : "border-red-500/20 bg-red-500/5 text-red-600 dark:text-red-400"
+                  }
+                `}
               >
-                <TrendingUpIcon className="size-3.5" />
-                +4.5%
+                {isGrowthPositive ? (
+                  <TrendingUpIcon className="size-3.5" />
+                ) : (
+                  <TrendingDownIcon className="size-3.5" />
+                )}
+
+                <span dir="ltr">
+                  {growth >= 0 ? "+" : ""}
+                  {growth.toFixed(1)}%
+                </span>
               </Badge>
-
             </CardAction>
-
           </div>
-
         </CardHeader>
 
         <CardFooter className="relative flex-col items-start gap-1.5 text-sm">
-
           <div className="flex items-center gap-2 font-medium">
-
             <span>
-              نمو مستقر ومستمر
+              مقارنة التسجيلات بالشهر السابق
             </span>
 
-            <TrendingUpIcon className="size-4 text-red-500" />
-
+            {isGrowthPositive ? (
+              <TrendingUpIcon className="size-4 text-green-500" />
+            ) : (
+              <TrendingDownIcon className="size-4 text-red-500" />
+            )}
           </div>
 
           <div className="text-muted-foreground">
-            الأداء يتوافق مع توقعات النمو
+            هذا الشهر:{" "}
+            {stats.currentMonthEnrollments} تسجيل
           </div>
-
         </CardFooter>
-
       </Card>
-
     </div>
   )
 }

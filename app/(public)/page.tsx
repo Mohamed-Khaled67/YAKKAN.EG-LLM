@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
@@ -17,7 +18,6 @@ import {
   Gift,
   GraduationCap,
   Headphones,
-  
   Mail,
   MapPin,
   Play,
@@ -27,12 +27,11 @@ import {
   Star,
   Users,
   X,
+  Quote,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-
-const RED = "#d90429";
 
 export default function HomePage() {
   const { data: session, isPending } = authClient.useSession();
@@ -40,10 +39,297 @@ export default function HomePage() {
   const isLoggedIn = !!session?.user;
 
   const [testimonialIndex, setTestimonialIndex] = useState(0);
-  const [mediaFilter, setMediaFilter] = useState("الكل");
 
   // ============================================================
-  // DATA
+  // GALLERY STATE
+  // ============================================================
+
+  const [mediaFilter, setMediaFilter] = useState("الكل");
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
+
+  // ============================================================
+  // COURSES STATE
+  // ============================================================
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [courseIndex, setCourseIndex] = useState(1);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+
+  // ============================================================
+// INSTAGRAM ICON
+// ============================================================
+
+function InstagramIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-5"
+      aria-hidden="true"
+    >
+      <rect
+        width="20"
+        height="20"
+        x="2"
+        y="2"
+        rx="5"
+        ry="5"
+      />
+
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+
+      <line
+        x1="17.5"
+        x2="17.51"
+        y1="6.5"
+        y2="6.5"
+      />
+    </svg>
+  );
+}
+
+// ============================================================
+// WHATSAPP ICON
+// ============================================================
+
+function WhatsappIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="size-5"
+      aria-hidden="true"
+    >
+      <path d="M20.52 3.48A11.82 11.82 0 0 0 12.08 0C5.55 0 .23 5.31.23 11.84c0 2.09.55 4.13 1.6 5.93L.13 24l6.38-1.67a11.82 11.82 0 0 0 5.57 1.42h.01c6.53 0 11.84-5.31 11.84-11.84 0-3.16-1.23-6.13-3.41-8.43ZM12.09 21.73h-.01a9.85 9.85 0 0 1-5.02-1.38l-.36-.21-3.79.99 1.01-3.7-.23-.38a9.83 9.83 0 0 1-1.51-5.21C2.18 6.41 6.62 1.98 12.08 1.98a9.82 9.82 0 0 1 6.98 2.9 9.83 9.83 0 0 1 2.89 6.99c0 5.46-4.43 9.9-9.86 9.9Zm5.43-7.42c-.3-.15-1.78-.88-2.06-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.96 1.18-.18.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.51-1.79-1.69-2.09-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.53.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.68-1.64-.93-2.25-.24-.59-.49-.51-.68-.52h-.58c-.2 0-.52.07-.8.37-.28.3-1.04 1.02-1.04 2.5s1.07 2.9 1.22 3.1c.15.2 2.1 3.2 5.08 4.49.71.31 1.27.49 1.71.63.72.23 1.38.2 1.9.12.58-.09 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.08-.13-.28-.2-.58-.35Z" />
+    </svg>
+  );
+}
+  // ============================================================
+  // LOAD COURSES
+  // ============================================================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCourses = async () => {
+      try {
+        setCoursesLoading(true);
+
+        const response = await fetch("/api/courses", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch courses");
+        }
+
+        const result = await response.json();
+
+        const items = Array.isArray(result)
+          ? result
+          : Array.isArray(result?.courses)
+            ? result.courses
+            : Array.isArray(result?.data)
+              ? result.data
+              : [];
+
+        const normalizedCourses: Course[] = items.map(
+          (course: any) => ({
+            id: String(course.id),
+
+            image:
+              course.mediaUrl ||
+              course.image ||
+              "/course-placeholder.jpg",
+
+            title:
+              course.title ||
+              "كورس بدون عنوان",
+
+            doctor:
+              course.doctor?.name ||
+              course.instructor?.name ||
+              course.instructorName ||
+              course.doctor ||
+              "YAKKAN EG",
+
+            description:
+              course.smallDescription ||
+              course.description ||
+              "اكتشف محتوى الكورس وابدأ رحلة التعلم مع YAKKAN EG.",
+
+            rating: Number(
+              course.rating ?? 4.7
+            ),
+
+            reviews: Number(
+              course.reviewsCount ??
+                course.reviews ??
+                0
+            ),
+
+            students: Number(
+              course.studentsCount ??
+                course.students ??
+                0
+            ),
+          })
+        );
+
+        if (!cancelled) {
+          setCourses(normalizedCourses);
+
+          setCourseIndex(
+            normalizedCourses.length > 1
+              ? 1
+              : 0
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load courses:",
+          error
+        );
+
+        if (!cancelled) {
+          setCourses([]);
+          setCourseIndex(0);
+        }
+      } finally {
+        if (!cancelled) {
+          setCoursesLoading(false);
+        }
+      }
+    };
+
+    loadCourses();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // ============================================================
+  // LOAD GALLERY
+  // ============================================================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadGallery = async () => {
+      try {
+        setGalleryLoading(true);
+
+        const response = await fetch(
+          "/api/gallery",
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to fetch gallery"
+          );
+        }
+
+        const result =
+          await response.json();
+
+        const images =
+          Array.isArray(result?.images)
+            ? result.images
+            : [];
+
+        const validImages: GalleryImage[] =
+          images.filter(
+            (image: any) =>
+              image &&
+              typeof image.id === "string" &&
+              typeof image.url === "string" &&
+              image.url.trim() !== "" &&
+              typeof image.category === "string"
+          );
+
+        if (!cancelled) {
+          setGalleryImages(validImages);
+          setMediaFilter("الكل");
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load gallery:",
+          error
+        );
+
+        if (!cancelled) {
+          setGalleryImages([]);
+          setMediaFilter("الكل");
+        }
+      } finally {
+        if (!cancelled) {
+          setGalleryLoading(false);
+        }
+      }
+    };
+
+    loadGallery();
+
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState ===
+        "visible"
+      ) {
+        loadGallery();
+      }
+    };
+
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
+    return () => {
+      cancelled = true;
+
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+      );
+    };
+  }, []);
+
+  // ============================================================
+  // COURSE NAVIGATION
+  // ============================================================
+
+  const nextCourse = () => {
+    setCourseIndex((current) =>
+      courses.length
+        ? (current + 1) % courses.length
+        : 0
+    );
+  };
+
+  const previousCourse = () => {
+    setCourseIndex((current) =>
+      courses.length
+        ? (current - 1 + courses.length) %
+          courses.length
+        : 0
+    );
+  };
+
+  // ============================================================
+  // WHY US
   // ============================================================
 
   const whyUs = [
@@ -79,6 +365,10 @@ export default function HomePage() {
     },
   ];
 
+  // ============================================================
+  // STEPS
+  // ============================================================
+
   const steps = [
     {
       number: "1",
@@ -97,100 +387,201 @@ export default function HomePage() {
     },
   ];
 
-  const courses = [
-    {
-      image: "/course-1.jpg",
-      title: "مبادئ المحاسبة",
-      doctor: "د. محمد احمد",
-    },
-    {
-      image: "/course-2.jpg",
-      title: "إدارة الأعمال",
-      doctor: "د. أشرف احمد",
-    },
-    {
-      image: "/course-3.jpg",
-      title: "الاقتصاد",
-      doctor: "د. أحمد سعيد",
-    },
-    {
-      image: "/course-4.jpg",
-      title: "التسويق",
-      doctor: "د. عمر توفيق",
-    },
-  ];
+  // ============================================================
+  // TESTIMONIALS
+  // ============================================================
 
   const testimonials = [
     {
-      name: "مريم حسن",
-      details: "الفرقة الرابعة\nجامعة القاهرة",
-      image: "/student-1.jpg",
-      text: "بعد ما خلصت أكتر من كورس من المنصة، مستوايا اتطور بشكل ملحوظ. أنصح أي حد يجربها ويطور مهاراته.",
+      text: "منصة YAKKAN EG من أفضل المنصات التعليمية اللي جربتها. المحتوى منظم بطريقة واضحة جدًا، وكل كورس بيكون مقسم بشكل يساعدك تتابع تقدمك من غير ما تحس بتشتت. أكثر شيء عجبني هو سهولة الوصول للمحتوى في أي وقت، بالإضافة إلى الاختبارات والمتابعة اللي بتخليك تحس إنك ماشي في رحلة تعليمية حقيقية مش مجرد فيديوهات.",
     },
     {
-      name: "أحمد محمد",
-      details: "طالب جامعي",
-      image: "/student-2.jpg",
-      text: "المحتوى منظم وسهل، والمتابعة المستمرة خلتني ملتزم بالتعلم وأنجزت الكورسات اللي بدأت فيها.",
+      text: "تجربة YAKKAN EG مختلفة فعلًا عن فكرة الكورسات التقليدية. المنصة سهلة الاستخدام، وتصميمها مريح، والمحتوى بيتقدم بشكل مرتب يخليك تعرف تبدأ منين وتوصل لإيه في النهاية. وجود الاختبارات والشهادات ومتابعة التقدم بيخلي التعلم أكثر جدية وتحفيزًا، وده شيء فرق معايا جدًا أثناء التعلم.",
     },
     {
-      name: "سارة علي",
-      details: "طالبة جامعية",
-      image: "/student-3.jpg",
-      text: "تجربة ممتازة، خصوصًا الاختبارات والشهادات وسهولة الوصول للمحتوى من أي مكان.",
+      text: "أكثر شيء مميز في المنصة هو إنها مش مجرد مكان لمشاهدة الكورسات، لكنها بتقدم تجربة تعليمية متكاملة. المحتوى واضح، والتنظيم ممتاز، والاختبارات بتساعد على التأكد من فهم المعلومات، بالإضافة إلى إن متابعة التقدم بتشجعك تكمل وتحقق هدفك بدل ما تبدأ كورس وتسيبه في النص.",
+    },
+    {
+      text: "استخدام المنصة كان تجربة مريحة جدًا من البداية. كل شيء واضح وسهل الوصول إليه، سواء الكورسات أو المحتوى أو الاختبارات. أعجبني جدًا الاهتمام بالتفاصيل وطريقة عرض المعلومات، وحسيت إن المنصة معمولة فعلًا علشان تساعد الطالب يتعلم بشكل عملي ومنظم، وليس فقط لمشاهدة المحتوى.",
+    },
+    {
+      text: "YAKKAN EG قدرت تجمع أكثر من شيء مهم في مكان واحد. التعلم، الاختبارات، الشهادات، ومتابعة مستوى التقدم كلها موجودة بشكل منظم. أكثر نقطة إيجابية بالنسبة لي هي إن المنصة بتخليك تشوف تطورك خطوة بخطوة، وده بيخلق إحساس بالإنجاز وبيشجعك تستمر وتكمل الكورسات اللي بدأت فيها.",
+    },
+    {
+      text: "منصة ممتازة جدًا من ناحية التنظيم وسهولة الاستخدام. المحتوى بيتقدم بطريقة بسيطة وواضحة، ومش محتاج تضيع وقت علشان تعرف تستخدم المنصة أو توصل للحاجة اللي محتاجها. وجود الاختبارات والشهادات خلّى التجربة أكثر احترافية، وأصبح عندي إحساس إن كل كورس بخلصه له قيمة حقيقية أقدر أستفيد منها.",
+    },
+    {
+      text: "التجربة بشكل عام كانت احترافية جدًا. المنصة سريعة وسهلة، وتصميمها مريح سواء على الكمبيوتر أو الموبايل. أكثر شيء أعجبني هو الاهتمام بتجربة المستخدم، بداية من اختيار الكورس وحتى متابعة الدروس والاختبارات والحصول على الشهادة. واضح إن الهدف مش مجرد تقديم محتوى، لكن بناء تجربة تعليمية متكاملة.",
+    },
+    {
+      text: "أرشح YAKKAN EG لأي شخص عايز يطور نفسه ويتعلم بطريقة منظمة. المنصة بتوفر بيئة تساعدك على الالتزام والاستمرار، والمحتوى مرتب والاختبارات بتخليك تراجع اللي اتعلمته بشكل عملي. بالإضافة إلى ذلك، سهولة الوصول للكورسات ومتابعة التقدم بتخلي تجربة التعلم أكثر مرونة وتناسب أي شخص عنده جدول مشغول.",
     },
   ];
 
-  const mediaItems = [
-    {
-      image: "/media-1.jpg",
-      type: "الرحلات",
-    },
-    {
-      image: "/media-2.jpg",
-      type: "الرحلات",
-    },
-    {
-      image: "/media-3.jpg",
-      type: "الرحلات",
-    },
-    {
-      image: "/media-4.jpg",
-      type: "الرحلات",
-    },
-    {
-      image: "/media-5.jpg",
-      type: "الكورسات",
-    },
-    {
-      image: "/media-6.jpg",
-      type: "الحفلات",
-    },
-    {
-      image: "/media-7.jpg",
-      type: "الرحلات",
-    },
-    {
-      image: "/media-8.jpg",
-      type: "الكورسات",
-    },
-  ];
+  // ============================================================
+  // GALLERY CATEGORY HELPERS
+  // ============================================================
 
-  const filteredMedia =
-    mediaFilter === "الكل"
-      ? mediaItems
-      : mediaItems.filter((item) => item.type === mediaFilter);
+  const galleryCategoryLabels: Record<
+    string,
+    string
+  > = {
+    GRADUATION: "حفلات التخرج",
+    GRADUATION_PARTY: "حفلات التخرج",
+    GRADUATION_PARTIES: "حفلات التخرج",
+    GRADUATIONS: "حفلات التخرج",
+
+    EVENTS: "حفلات التخرج",
+    EVENT: "حفلات التخرج",
+    PARTIES: "حفلات التخرج",
+    PARTY: "حفلات التخرج",
+
+    TRIPS: "الرحلات",
+    TRIP: "الرحلات",
+
+    COURSES: "الكورسات",
+    COURSE: "الكورسات",
+
+    "حفلات التخرج": "حفلات التخرج",
+    الحفلات: "حفلات التخرج",
+    الرحلات: "الرحلات",
+    الكورسات: "الكورسات",
+  };
+
+  const getGalleryCategoryLabel = (
+    category: string
+  ) => {
+    const normalized =
+      category.trim().toUpperCase();
+
+    return (
+      galleryCategoryLabels[normalized] ||
+      galleryCategoryLabels[category] ||
+      category
+    );
+  };
+
+  // ============================================================
+  // AVAILABLE GALLERY CATEGORIES
+  // ============================================================
+
+  const availableGalleryCategories =
+    useMemo(() => {
+      const uniqueCategories =
+        Array.from(
+          new Set(
+            galleryImages.map(
+              (image) => image.category
+            )
+          )
+        );
+
+      const orderedLabels = [
+        "حفلات التخرج",
+        "الرحلات",
+        "الكورسات",
+      ];
+
+      const result: GalleryCategoryOption[] =
+        [];
+
+      for (const label of orderedLabels) {
+        const matchingCategory =
+          uniqueCategories.find(
+            (category) =>
+              getGalleryCategoryLabel(
+                category
+              ) === label
+          );
+
+        if (matchingCategory) {
+          result.push({
+            key: matchingCategory,
+            label,
+          });
+        }
+      }
+
+      for (const category of uniqueCategories) {
+        const alreadyAdded =
+          result.some(
+            (item) =>
+              item.key === category
+          );
+
+        if (!alreadyAdded) {
+          result.push({
+            key: category,
+            label:
+              getGalleryCategoryLabel(
+                category
+              ),
+          });
+        }
+      }
+
+      return result;
+    }, [galleryImages]);
+
+  // ============================================================
+  // FILTERED GALLERY
+  // ============================================================
+
+  const filteredGalleryImages =
+    useMemo(() => {
+      if (mediaFilter === "الكل") {
+        return galleryImages;
+      }
+
+      return galleryImages.filter(
+        (image) =>
+          image.category === mediaFilter
+      );
+    }, [
+      galleryImages,
+      mediaFilter,
+    ]);
+
+  // ============================================================
+  // KEEP FILTER VALID
+  // ============================================================
+
+  useEffect(() => {
+    if (mediaFilter === "الكل") {
+      return;
+    }
+
+    const categoryStillExists =
+      availableGalleryCategories.some(
+        (category) =>
+          category.key === mediaFilter
+      );
+
+    if (!categoryStillExists) {
+      setMediaFilter("الكل");
+    }
+  }, [
+    mediaFilter,
+    availableGalleryCategories,
+  ]);
+
+  // ============================================================
+  // TESTIMONIAL NAVIGATION
+  // ============================================================
 
   const nextTestimonial = () => {
     setTestimonialIndex(
-      (current) => (current + 1) % testimonials.length,
+      (current) =>
+        (current + 1) %
+        testimonials.length
     );
   };
 
   const previousTestimonial = () => {
     setTestimonialIndex(
       (current) =>
-        (current - 1 + testimonials.length) % testimonials.length,
+        (current - 1 + testimonials.length) %
+        testimonials.length
     );
   };
 
@@ -201,34 +592,41 @@ export default function HomePage() {
   return (
     <main
       dir="rtl"
-      className="min-h-screen overflow-hidden bg-white text-[#202020] transition-colors dark:bg-[#0d0d0f] dark:text-white"
+      className="min-h-screen overflow-hidden bg-[#fcfcfd] text-[#18181b] antialiased transition-colors dark:bg-[#08090b] dark:text-white"
     >
       {/* ========================================================
           HERO
       ======================================================== */}
 
-      <section className="relative overflow-hidden bg-[#fafafa] dark:bg-[#111113]">
+      <section className="relative overflow-hidden bg-[#f7f7f8] dark:bg-[#0b0c0f]">
+        <div className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-[#C8102E]/10 blur-3xl dark:bg-[#C8102E]/15" />
+
+        <div className="pointer-events-none absolute -bottom-32 -left-20 size-96 rounded-full bg-[#C8102E]/5 blur-3xl dark:bg-[#C8102E]/10" />
+
         <div className="mx-auto grid min-h-[570px] max-w-[1500px] items-center gap-8 px-5 py-12 lg:grid-cols-2 lg:px-10 lg:py-16">
-
-          {/* ====================================================
-              TEXT
-          ==================================================== */}
-
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7 }}
+            initial={{
+              opacity: 0,
+              x: 40,
+            }}
+            animate={{
+              opacity: 1,
+              x: 0,
+            }}
+            transition={{
+              duration: 0.7,
+            }}
             className="order-1 text-center lg:order-1 lg:text-right"
           >
-            <p className="mb-3 text-lg font-bold text-[#d90429]">
+            <p className="mb-4 text-sm font-extrabold tracking-[0.18em] text-[#C8102E]">
               منصة YAKKAN EG التعليمية
             </p>
 
-            <h1 className="text-4xl font-black leading-[1.25] tracking-tight sm:text-5xl lg:text-[58px]">
+            <h1 className="text-4xl font-black leading-[1.16] tracking-[-0.03em] sm:text-5xl lg:text-[64px]">
               تعلم بذكاء...
               <br />
 
-              <span className="text-[#d90429]">
+              <span className="text-[#C8102E]">
                 وابدأ رحلتك نحو النجاح
               </span>
             </h1>
@@ -241,7 +639,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
               {!isPending && !isLoggedIn && (
                 <Link href="/register">
-                  <Button className="h-12 w-full rounded-lg bg-[#d90429] px-9 text-base font-bold text-white hover:bg-[#bd0324] sm:w-auto">
+                  <Button className="h-12 w-full rounded-xl bg-[#C8102E] px-9 text-sm font-extrabold text-white shadow-[0_10px_30px_rgba(200,16,46,0.22)] transition-all hover:-translate-y-0.5 hover:bg-[#a80d27] hover:shadow-[0_14px_34px_rgba(200,16,46,0.28)] sm:w-auto">
                     ابدأ الآن
                   </Button>
                 </Link>
@@ -250,33 +648,36 @@ export default function HomePage() {
               <Link href="/courses">
                 <Button
                   variant="outline"
-                  className="h-12 w-full rounded-lg border-2 border-[#d90429] bg-transparent px-8 text-base font-bold text-[#d90429] hover:bg-[#d90429]/5 dark:text-[#ff4d6d] sm:w-auto"
+                  className="h-12 w-full rounded-xl border border-black/10 bg-white/70 px-8 text-sm font-extrabold text-[#18181b] shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-[#C8102E]/30 hover:bg-white hover:text-[#C8102E] dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:border-[#C8102E]/40 dark:hover:bg-white/[0.07] dark:hover:text-[#ff5a73] sm:w-auto"
                 >
                   تصفح الكورسات
+
                   <BookOpen className="mr-2 size-5" />
                 </Button>
               </Link>
             </div>
           </motion.div>
 
-          {/* ====================================================
-              HERO IMAGE
-          ==================================================== */}
-
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{
+              opacity: 0,
+              x: -40,
+            }}
+            animate={{
+              opacity: 1,
+              x: 0,
+            }}
+            transition={{
+              duration: 0.8,
+            }}
             className="order-2 flex items-center justify-center lg:order-2"
           >
-            {/* Light Mode */}
             <img
               src="/hero.jpeg"
               alt="YAKKAN EG"
               className="block w-full max-w-[720px] object-contain dark:hidden"
             />
 
-            {/* Dark Mode */}
             <img
               src="/hero2.jpeg"
               alt="YAKKAN EG"
@@ -290,8 +691,8 @@ export default function HomePage() {
           STATS
       ======================================================== */}
 
-      <section className="relative z-10 mx-auto -mt-3 max-w-[1450px] px-5 lg:px-10">
-        <div className="grid overflow-hidden rounded-2xl bg-white shadow-[0_5px_30px_rgba(0,0,0,0.06)] dark:bg-[#18181b] dark:shadow-black/30 sm:grid-cols-3 lg:grid-cols-5">
+      <section className="relative z-10 mx-auto -mt-8 max-w-[1450px] px-5 lg:px-10">
+        <div className="grid overflow-hidden rounded-2xl border border-black/[0.06] bg-white/95 shadow-[0_20px_60px_rgba(24,24,27,0.09)] backdrop-blur-xl dark:border-white/[0.07] dark:bg-[#111216]/95 dark:shadow-black/30 sm:grid-cols-3 lg:grid-cols-5">
           <Stat
             icon={<Users />}
             number="20,000+"
@@ -317,7 +718,11 @@ export default function HomePage() {
           />
 
           <Stat
-            icon={<span className="text-4xl">☺</span>}
+            icon={
+              <span className="text-4xl">
+                ☺
+              </span>
+            }
             number="98%"
             label="نسبة رضا"
           />
@@ -328,7 +733,7 @@ export default function HomePage() {
           CATEGORIES
       ======================================================== */}
 
-      <section className="mx-auto max-w-[1450px] px-5 py-6 lg:px-10">
+      <section className="mx-auto max-w-[1450px] px-5 py-10 lg:px-10">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <Category
             icon={<Gift />}
@@ -366,11 +771,11 @@ export default function HomePage() {
           WHY US
       ======================================================== */}
 
-      <section className="bg-[#fafafa] py-20 dark:bg-[#111113]">
+      <section className="bg-[#f7f7f8] py-24 dark:bg-[#0b0c0f]">
         <div className="mx-auto max-w-[1500px] px-5 lg:px-10">
           <SectionTitle title="لماذا تختار YAKKAN EG ؟" />
 
-          <div className="mt-12 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-6">
+          <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
             {whyUs.map((item) => (
               <WhyCard
                 key={item.title}
@@ -380,8 +785,6 @@ export default function HomePage() {
               />
             ))}
           </div>
-
-          {/* HOW TO START */}
 
           <SectionTitle
             title="كيف تبدأ ؟"
@@ -405,7 +808,7 @@ export default function HomePage() {
           FEATURED COURSES
       ======================================================== */}
 
-      <section className="py-20">
+      <section className="py-24">
         <div className="mx-auto max-w-[1500px] px-5 lg:px-10">
           <div className="flex items-center justify-between">
             <SectionTitle
@@ -415,21 +818,134 @@ export default function HomePage() {
 
             <Link
               href="/courses"
-              className="font-bold text-[#d90429] hover:underline"
+              className="font-bold text-[#C8102E] hover:underline"
             >
               عرض جميع الكورسات
             </Link>
           </div>
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {courses.map((course) => (
-              <CourseCard
-                key={course.title}
-                image={course.image}
-                title={course.title}
-                doctor={course.doctor}
-              />
-            ))}
+          <div className="mt-10">
+            {coursesLoading ? (
+              <div className="grid min-h-[520px] place-items-center rounded-[28px] border border-black/[0.06] bg-[#fafafa] dark:border-white/[0.06] dark:bg-[#111216]">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <div className="size-10 animate-spin rounded-full border-2 border-black/10 border-t-[#C8102E] dark:border-white/10 dark:border-t-[#C8102E]" />
+
+                  <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    جاري تحميل الكورسات...
+                  </p>
+                </div>
+              </div>
+            ) : courses.length === 0 ? (
+              <div className="grid min-h-[260px] place-items-center rounded-[28px] border border-dashed border-black/10 bg-[#fafafa] text-center dark:border-white/10 dark:bg-[#111216]">
+                <div>
+                  <BookOpen className="mx-auto size-10 text-[#C8102E]" />
+
+                  <p className="mt-4 font-bold">
+                    لا توجد كورسات متاحة حاليًا
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-x-[10%] top-1/2 h-48 -translate-y-1/2 rounded-full bg-[#C8102E]/[0.07] blur-3xl dark:bg-[#C8102E]/[0.10]" />
+
+                <AnimatePresence
+                  mode="wait"
+                  initial={false}
+                >
+                  <motion.div
+                    key={`${courseIndex}-${courses.length}`}
+                    initial={{
+                      opacity: 0,
+                      x: 30,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      x: -30,
+                    }}
+                    transition={{
+                      duration: 0.35,
+                      ease: "easeOut",
+                    }}
+                    className="relative flex min-h-[450px] items-center justify-center gap-3 overflow-visible px-0 py-6 sm:gap-4 md:min-h-[500px] md:gap-6 md:px-8 lg:gap-8"
+                  >
+                    {getVisibleCourses(
+                      courses,
+                      courseIndex
+                    ).map(
+                      (
+                        course,
+                        position
+                      ) => (
+                        <CourseCard
+                          key={`${course.id}-${position}`}
+                          course={course}
+                          position={position}
+                          onClick={() =>
+                            setCourseIndex(
+                              courses.indexOf(
+                                course
+                              )
+                            )
+                          }
+                        />
+                      )
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+
+                {courses.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={previousCourse}
+                      aria-label="الكورس السابق"
+                      className="absolute right-0 top-1/2 z-20 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border border-black/[0.06] bg-white/95 text-[#C8102E] shadow-[0_10px_30px_rgba(0,0,0,0.10)] backdrop-blur transition-all hover:-translate-y-1/2 hover:scale-105 hover:bg-[#C8102E] hover:text-white dark:border-white/[0.08] dark:bg-[#18191e]/95"
+                    >
+                      <ChevronRight className="size-6" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={nextCourse}
+                      aria-label="الكورس التالي"
+                      className="absolute left-0 top-1/2 z-20 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border border-black/[0.06] bg-white/95 text-[#C8102E] shadow-[0_10px_30px_rgba(0,0,0,0.10)] backdrop-blur transition-all hover:-translate-y-1/2 hover:scale-105 hover:bg-[#C8102E] hover:text-white dark:border-white/[0.08] dark:bg-[#18191e]/95"
+                    >
+                      <ChevronLeft className="size-6" />
+                    </button>
+                  </>
+                )}
+
+                {courses.length > 1 && (
+                  <div className="mt-2 flex justify-center gap-2">
+                    {courses.map(
+                      (course, index) => (
+                        <button
+                          key={course.id}
+                          type="button"
+                          aria-label={`الانتقال إلى ${course.title}`}
+                          onClick={() =>
+                            setCourseIndex(
+                              index
+                            )
+                          }
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            index ===
+                            courseIndex
+                              ? "w-8 bg-[#C8102E]"
+                              : "w-1.5 bg-black/15 hover:bg-black/30 dark:bg-white/15 dark:hover:bg-white/30"
+                          }`}
+                        />
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -438,87 +954,154 @@ export default function HomePage() {
           TESTIMONIALS
       ======================================================== */}
 
-      <section className="overflow-hidden bg-[#fafafa] py-20 dark:bg-[#111113]">
-        <div className="mx-auto max-w-[1500px] px-5 lg:px-10">
+      <section className="relative overflow-hidden bg-[#f7f7f8] py-24 dark:bg-[#0b0c0f]">
+        {/* Decorative background */}
+
+        <div className="pointer-events-none absolute -right-40 top-20 size-96 rounded-full bg-[#C8102E]/[0.05] blur-3xl dark:bg-[#C8102E]/[0.08]" />
+
+        <div className="pointer-events-none absolute -left-40 bottom-0 size-96 rounded-full bg-[#C8102E]/[0.04] blur-3xl dark:bg-[#C8102E]/[0.06]" />
+
+        <div className="relative mx-auto max-w-[1500px] px-5 lg:px-10">
           <SectionTitle title="آراء الطلاب" />
 
-          <div className="relative mx-auto mt-12 max-w-[1150px]">
-            <div className="overflow-hidden rounded-3xl bg-white shadow-[0_5px_30px_rgba(0,0,0,0.04)] dark:bg-[#18181b]">
-              <AnimatePresence mode="wait">
+          <p className="mx-auto mt-4 max-w-2xl text-center text-sm leading-7 text-gray-500 dark:text-gray-400">
+            تجارب وآراء من مجتمع YAKKAN EG
+          </p>
+
+          <div className="relative mx-auto mt-12 max-w-[1150px] px-2 sm:px-12">
+            {/* Main testimonial card */}
+
+            <div className="relative overflow-hidden rounded-[32px] border border-black/[0.05] bg-white shadow-[0_25px_80px_rgba(24,24,27,0.08)] dark:border-white/[0.07] dark:bg-[#111216] dark:shadow-black/30">
+              {/* Top accent */}
+
+              <div className="absolute inset-x-0 top-0 h-1 bg-[#C8102E]" />
+
+              <AnimatePresence
+                mode="wait"
+                initial={false}
+              >
                 <motion.div
                   key={testimonialIndex}
                   initial={{
                     opacity: 0,
-                    x: 30,
+                    y: 20,
                   }}
                   animate={{
                     opacity: 1,
-                    x: 0,
+                    y: 0,
                   }}
                   exit={{
                     opacity: 0,
-                    x: -30,
+                    y: -20,
                   }}
                   transition={{
-                    duration: 0.3,
+                    duration: 0.35,
+                    ease: "easeOut",
                   }}
-                  className="min-h-[320px] px-8 py-12 text-center sm:px-20"
+                  className="relative px-7 py-12 text-center sm:px-16 sm:py-16"
                 >
-                  <div className="flex justify-center gap-1 text-[#ffbd00]">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className="size-7 fill-current"
-                      />
-                    ))}
+                  {/* Quote icon */}
+
+                  <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-[#C8102E]/10 text-[#C8102E] dark:bg-[#C8102E]/15">
+                    <Quote className="size-8 fill-current" />
                   </div>
 
-                  <p className="mx-auto mt-8 max-w-[850px] text-lg leading-9 text-[#333] dark:text-gray-200">
-                    "{testimonials[testimonialIndex].text}"
+                  {/* Stars */}
+
+                  <div className="mt-7 flex justify-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map(
+                      (star) => (
+                        <Star
+                          key={star}
+                          className="size-5 fill-[#ffbd00] text-[#ffbd00]"
+                        />
+                      )
+                    )}
+                  </div>
+
+                  {/* Text */}
+
+                  <p className="mx-auto mt-8 max-w-[900px] text-base font-medium leading-9 text-[#3f3f46] sm:text-lg sm:leading-10 dark:text-gray-200">
+                    "
+                    {
+                      testimonials[
+                        testimonialIndex
+                      ].text
+                    }
+                    "
                   </p>
 
-                  <div className="mt-8 flex items-center justify-center gap-4">
-                    <img
-                      src={testimonials[testimonialIndex].image}
-                      alt={testimonials[testimonialIndex].name}
-                      className="size-16 rounded-full object-cover"
-                    />
+                  {/* Bottom label */}
 
-                    <div className="text-right">
-                      <h3 className="font-black">
-                        {testimonials[testimonialIndex].name}
-                      </h3>
+                  <div className="mx-auto mt-9 flex w-fit items-center gap-3 rounded-full border border-black/[0.06] bg-[#fafafa] px-5 py-2.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
+                    <div className="size-2 rounded-full bg-[#C8102E]" />
 
-                      <p className="mt-1 whitespace-pre-line text-sm text-gray-500">
-                        {testimonials[testimonialIndex].details}
-                      </p>
-                    </div>
+                    <span className="text-xs font-black text-gray-600 dark:text-gray-300">
+                      تجربة من مجتمع YAKKAN EG
+                    </span>
                   </div>
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* PREVIOUS */}
+            {/* Previous */}
 
             <button
               type="button"
               onClick={previousTestimonial}
               aria-label="الرأي السابق"
-              className="absolute right-2 top-1/2 flex size-14 -translate-y-1/2 items-center justify-center rounded-full bg-[#e96f89] text-white shadow-lg transition hover:scale-105"
+              className="absolute right-0 top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-[#C8102E] text-white shadow-[0_12px_30px_rgba(200,16,46,0.25)] transition-all hover:scale-110 hover:bg-[#a80d27] sm:right-0 sm:size-14"
             >
-              <ChevronRight className="size-7" />
+              <ChevronRight className="size-6 sm:size-7" />
             </button>
 
-            {/* NEXT */}
+            {/* Next */}
 
             <button
               type="button"
               onClick={nextTestimonial}
               aria-label="الرأي التالي"
-              className="absolute left-2 top-1/2 flex size-14 -translate-y-1/2 items-center justify-center rounded-full bg-[#e96f89] text-white shadow-lg transition hover:scale-105"
+              className="absolute left-0 top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-[#C8102E] text-white shadow-[0_12px_30px_rgba(200,16,46,0.25)] transition-all hover:scale-110 hover:bg-[#a80d27] sm:left-0 sm:size-14"
             >
-              <ChevronLeft className="size-7" />
+              <ChevronLeft className="size-6 sm:size-7" />
             </button>
+          </div>
+
+          {/* Indicators */}
+
+          <div className="mt-8 flex items-center justify-center gap-2">
+            {testimonials.map(
+              (_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  aria-label={`الانتقال إلى الرأي ${index + 1}`}
+                  onClick={() =>
+                    setTestimonialIndex(
+                      index
+                    )
+                  }
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    index ===
+                    testimonialIndex
+                      ? "w-9 bg-[#C8102E]"
+                      : "w-1.5 bg-black/15 hover:bg-black/30 dark:bg-white/15 dark:hover:bg-white/30"
+                  }`}
+                />
+              )
+            )}
+          </div>
+
+          {/* Counter */}
+
+          <div className="mt-4 text-center text-xs font-bold text-gray-400">
+            {String(
+              testimonialIndex + 1
+            ).padStart(2, "0")}{" "}
+            /{" "}
+            {String(
+              testimonials.length
+            ).padStart(2, "0")}
           </div>
         </div>
       </section>
@@ -527,7 +1110,7 @@ export default function HomePage() {
           APP DOWNLOAD
       ======================================================== */}
 
-      <section className="py-16">
+      <section className="py-24">
         <div className="mx-auto grid max-w-[1450px] items-center gap-12 px-5 lg:grid-cols-2 lg:px-10">
           <motion.div
             initial={{
@@ -545,13 +1128,13 @@ export default function HomePage() {
           >
             <h2 className="text-3xl font-black sm:text-4xl">
               حمل تطبيق{" "}
-              <span className="text-[#d90429]">
+              <span className="text-[#C8102E]">
                 YAKKAN EG
               </span>{" "}
               الآن
             </h2>
 
-            <p className="mt-6 text-lg leading-9 text-[#444] dark:text-gray-300">
+            <p className="mt-6 text-lg leading-9 text-[#52525b] dark:text-[#b7b7c0]">
               تعلم في أي وقت ومن أي مكان.
               <br />
               تجربة تعليمية متكاملة بين يديك.
@@ -585,7 +1168,7 @@ export default function HomePage() {
             className="flex justify-center"
           >
             <img
-              src="/app.png"
+              src="/Mobile development-bro.svg"
               alt="YAKKAN EG App"
               className="w-full max-w-[700px] object-contain"
             />
@@ -597,213 +1180,321 @@ export default function HomePage() {
           MEDIA GALLERY
       ======================================================== */}
 
-      <section className="bg-[#fafafa] py-20 dark:bg-[#111113]">
-        <div className="mx-auto max-w-[1500px] px-5 lg:px-10">
-          <SectionTitle title="معرض الصور والفيديوهات" />
+      {!galleryLoading &&
+        galleryImages.length > 0 && (
+          <section className="bg-[#f7f7f8] py-24 dark:bg-[#0b0c0f]">
+            <div className="mx-auto max-w-[1500px] px-5 lg:px-10">
+              <SectionTitle title="معرض الصور والفيديوهات" />
 
-          {/* FILTERS */}
+              {/* FILTERS */}
 
-          <div className="mt-9 flex flex-wrap justify-center gap-3">
-            {[
-              "الكل",
-              "الحفلات",
-              "الرحلات",
-              "الكورسات",
-            ].map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setMediaFilter(filter)}
-                className={`rounded-lg px-6 py-2.5 text-sm font-bold transition ${
-                  mediaFilter === filter
-                    ? "bg-[#d90429] text-white"
-                    : "bg-white text-[#333] shadow-sm hover:bg-gray-100 dark:bg-[#18181b] dark:text-white dark:hover:bg-[#222225]"
-                }`}
+              <div className="mt-9 flex flex-wrap justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMediaFilter("الكل")
+                  }
+                  className={`rounded-xl border px-6 py-2.5 text-sm font-bold transition-all duration-300 ${
+                    mediaFilter === "الكل"
+                      ? "border-[#C8102E] bg-[#C8102E] text-white shadow-[0_8px_22px_rgba(200,16,46,0.18)]"
+                      : "border-black/[0.06] bg-white text-[#52525b] shadow-sm hover:border-[#C8102E]/20 hover:bg-white hover:text-[#C8102E] dark:border-white/[0.07] dark:bg-[#111216] dark:text-white dark:hover:bg-white/[0.07]"
+                  }`}
+                >
+                  الكل
+                </button>
+
+                {availableGalleryCategories.map(
+                  (category) => (
+                    <button
+                      key={category.key}
+                      type="button"
+                      onClick={() =>
+                        setMediaFilter(
+                          category.key
+                        )
+                      }
+                      className={`rounded-xl border px-6 py-2.5 text-sm font-bold transition-all duration-300 ${
+                        mediaFilter ===
+                        category.key
+                          ? "border-[#C8102E] bg-[#C8102E] text-white shadow-[0_8px_22px_rgba(200,16,46,0.18)]"
+                          : "border-black/[0.06] bg-white text-[#52525b] shadow-sm hover:border-[#C8102E]/20 hover:bg-white hover:text-[#C8102E] dark:border-white/[0.07] dark:bg-[#111216] dark:text-white dark:hover:bg-white/[0.07]"
+                      }`}
+                    >
+                      {category.label}
+                    </button>
+                  )
+                )}
+              </div>
+
+              {/* GALLERY */}
+
+              <div
+                className="
+                  mt-9
+                  max-h-[720px]
+                  overflow-y-auto
+                  overflow-x-hidden
+                  rounded-[24px]
+                  pr-1
+                  [scrollbar-width:thin]
+                "
               >
-                {filter}
-              </button>
-            ))}
-          </div>
-
-          {/* IMAGES */}
-
-          <motion.div
-            layout
-            className="mt-9 grid grid-cols-2 gap-4 lg:grid-cols-4"
-          >
-            <AnimatePresence>
-              {filteredMedia.map((item, index) => (
                 <motion.div
                   layout
-                  key={`${item.image}-${index}`}
-                  initial={{
-                    opacity: 0,
-                    scale: 0.95,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    scale: 1,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    scale: 0.95,
-                  }}
-                  className="group relative overflow-hidden rounded-xl"
+                  className="grid grid-cols-2 gap-4 lg:grid-cols-4"
                 >
-                  <img
-                    src={item.image}
-                    alt={item.type}
-                    className="aspect-[1.7] w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
+                  <AnimatePresence mode="popLayout">
+                    {filteredGalleryImages.map(
+                      (item) => (
+                        <motion.div
+                          layout
+                          key={item.id}
+                          initial={{
+                            opacity: 0,
+                            scale: 0.95,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            scale: 1,
+                          }}
+                          exit={{
+                            opacity: 0,
+                            scale: 0.95,
+                          }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="
+                            group
+                            relative
+                            h-[190px]
+                            overflow-hidden
+                            rounded-2xl
+                            border
+                            border-black/[0.06]
+                            bg-white
+                            shadow-[0_8px_25px_rgba(24,24,27,0.05)]
+                            sm:h-[220px]
+                            lg:h-[250px]
+                            dark:border-white/[0.07]
+                            dark:bg-[#111216]
+                          "
+                        >
+                          {/* ==================================================
+                              IMAGE
+                          ================================================== */}
 
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-300 group-hover:bg-black/30 group-hover:opacity-100">
-                    <div className="flex size-14 items-center justify-center rounded-full bg-white/90 text-[#d90429]">
-                      <PlayCircle className="size-8" />
-                    </div>
-                  </div>
+                          <img
+                            src={item.url}
+                            alt={getGalleryCategoryLabel(
+                              item.category
+                            )}
+                            loading="lazy"
+                            decoding="async"
+                            className="
+                              block
+                              h-full
+                              w-full
+                              object-cover
+                              transition-transform
+                              duration-500
+                              ease-out
+                              group-hover:scale-105
+                            "
+                          />
+
+                          {/* ==================================================
+                              CATEGORY BADGE ONLY
+                              
+                              لا يوجد هنا أي Overlay أو PlayCircle
+                              ================================================== */}
+
+                          <div
+                            className="
+                              absolute
+                              right-3
+                              top-3
+                              rounded-full
+                              bg-black/60
+                              px-3
+                              py-1.5
+                              text-xs
+                              font-bold
+                              text-white
+                              backdrop-blur-md
+                            "
+                          >
+                            {getGalleryCategoryLabel(
+                              item.category
+                            )}
+                          </div>
+                        </motion.div>
+                      )
+                    )}
+                  </AnimatePresence>
                 </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
-        </div>
-      </section>
+              </div>
+
+              {/* EMPTY FILTER */}
+
+              {filteredGalleryImages.length ===
+                0 && (
+                <div className="mt-9 rounded-2xl border border-dashed border-black/10 bg-white py-16 text-center dark:border-white/10 dark:bg-[#111216]">
+                  <p className="font-bold text-gray-500 dark:text-gray-400">
+                    لا توجد صور في هذا التصنيف حاليًا
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
       {/* ========================================================
           FOOTER
       ======================================================== */}
 
-      <footer className="border-t border-black/10 bg-white dark:border-white/10 dark:bg-[#0d0d0f]">
-        <div className="mx-auto max-w-[1250px] px-5 py-16 lg:px-10">
-          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+      
+{/* ========================================================
+    FOOTER
+======================================================== */}
 
-            {/* BRAND */}
+<footer className="border-t border-black/[0.06] bg-white dark:border-white/[0.07] dark:bg-[#08090b]">
+  <div className="mx-auto max-w-[1200px] px-5 py-14 lg:px-10">
+    <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:text-right">
 
-            <div>
-              <h3 className="text-lg font-black text-[#d90429]">
-                YAKKAN EG
-              </h3>
+      {/* BRAND */}
 
-              <p className="mt-5 text-sm leading-8 text-gray-600 dark:text-gray-400">
-                منصة تعليمية متكاملة تقدم أفضل الدورات التدريبية
-                والفعاليات والرحلات التعليمية وحفلات التخرج،
-                لمساعدتك على تطوير مهاراتك وتحقيق أهدافك في سوق العمل.
-              </p>
+      <div className="text-center md:text-right">
+        <div className="flex items-center justify-center gap-3 md:justify-start">
+          {/* LOGO */}
+          <div className="size-15 overflow-hidden rounded-full border-4 border-transparent">
+  <img
+    src="/myLogo.png"
+    alt="YAKKAN EG"
+    className="size-full object-contain"
+  />
+</div>
 
-              <div className="mt-6 flex gap-3">
-                <SocialIcon icon={<FacebookIcon />} />
-                <SocialIcon icon={<YoutubeIcon />} />
-                <SocialIcon icon={<X />} />
-              </div>
-            </div>
-
-            {/* QUICK LINKS */}
-
-            <div>
-              <h3 className="font-black">
-                روابط سريعة
-              </h3>
-
-              <FooterLink
-                href="/"
-                text="الرئيسية"
-              />
-
-              <FooterLink
-                href="/courses"
-                text="الكورسات"
-              />
-
-              <FooterLink
-                href="/events"
-                text="الفعاليات"
-              />
-
-              <FooterLink
-                href="/trips"
-                text="الرحلات"
-              />
-
-              <FooterLink
-                href="/graduation"
-                text="حفلات التخرج"
-              />
-            </div>
-
-            {/* SERVICES */}
-
-            <div>
-              <h3 className="font-black">
-                خدماتنا
-              </h3>
-
-              <FooterLink
-                href="/courses"
-                text="الدورات التدريبية"
-              />
-
-              <FooterLink
-                href="/lectures"
-                text="المحاضرات"
-              />
-
-              <FooterLink
-                href="/exams"
-                text="الاختبارات"
-              />
-
-              <FooterLink
-                href="/certificates"
-                text="الشهادات"
-              />
-
-              <FooterLink
-                href="/support"
-                text="الدعم الفني"
-              />
-            </div>
-
-            {/* CONTACT */}
-
-            <div>
-              <h3 className="font-black">
-                تواصل معنا
-              </h3>
-
-              <ContactRow
-                icon={<PhoneIcon />}
-                text="20+ 7890 456 123"
-              />
-
-              <ContactRow
-                icon={<Mail />}
-                text="info@yakkaneg.com"
-              />
-
-              <ContactRow
-                icon={<MapPin />}
-                text="القاهرة - مصر"
-              />
-            </div>
-          </div>
-
-          {/* COPYRIGHT */}
-
-          <div className="mt-14 border-t border-black/10 pt-7 text-center text-sm text-gray-500 dark:border-white/10">
-            © {new Date().getFullYear()}{" "}
-            <span className="font-bold text-[#d90429]">
+          {/* NAME */}
+          <div>
+            <h3 className="text-2xl font-black tracking-tight text-[#C8102E]">
               YAKKAN EG
-            </span>{" "}
-            - جميع الحقوق محفوظة.
+            </h3>
+
+            <p className="mt-0.5 text-xs font-semibold text-[#71717a] dark:text-[#a1a1aa]">
+              منصة تعليمية متكاملة
+            </p>
           </div>
         </div>
-      </footer>
+
+        <p className="mt-4 max-w-[450px] text-sm leading-7 text-[#71717a] dark:text-[#a1a1aa]">
+          تعلم بذكاء وابدأ رحلتك نحو النجاح مع YAKKAN EG.
+        </p>
+      </div>
+
+      {/* SOCIAL */}
+
+      <div className="text-center">
+        <h3 className="text-base font-black">
+          تواصل معنا
+        </h3>
+
+        <div className="mt-4 flex items-center justify-center gap-3">
+
+          {/* FACEBOOK */}
+
+          <a
+            href="#"
+            aria-label="Facebook"
+            className="flex size-11 items-center justify-center rounded-xl border border-black/[0.06] bg-[#fafafa] text-[#18181b] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#C8102E]/20 hover:bg-[#C8102E] hover:text-white hover:shadow-[0_10px_25px_rgba(200,16,46,0.18)] dark:border-white/[0.07] dark:bg-[#111216] dark:text-white"
+          >
+            <FacebookIcon />
+          </a>
+
+          {/* INSTAGRAM */}
+
+          <a
+            href="#"
+            aria-label="Instagram"
+            className="flex size-11 items-center justify-center rounded-xl border border-black/[0.06] bg-[#fafafa] text-[#18181b] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#C8102E]/20 hover:bg-[#C8102E] hover:text-white hover:shadow-[0_10px_25px_rgba(200,16,46,0.18)] dark:border-white/[0.07] dark:bg-[#111216] dark:text-white"
+          >
+            <InstagramIcon />
+          </a>
+
+          {/* WHATSAPP */}
+
+          <a
+            href="#"
+            aria-label="WhatsApp"
+            className="flex size-11 items-center justify-center rounded-xl border border-black/[0.06] bg-[#fafafa] text-[#18181b] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#C8102E]/20 hover:bg-[#C8102E] hover:text-white hover:shadow-[0_10px_25px_rgba(200,16,46,0.18)] dark:border-white/[0.07] dark:bg-[#111216] dark:text-white"
+          >
+            <WhatsappIcon />
+          </a>
+          
+
+          {/* X */}
+
+          <a
+            href="#"
+            aria-label="X"
+            className="flex size-11 items-center justify-center rounded-xl border border-black/[0.06] bg-[#fafafa] text-[#18181b] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#C8102E]/20 hover:bg-[#C8102E] hover:text-white hover:shadow-[0_10px_25px_rgba(200,16,46,0.18)] dark:border-white/[0.07] dark:bg-[#111216] dark:text-white"
+          >
+            <X className="size-5" />
+          </a>
+
+        </div>
+      </div>
+    </div>
+
+    {/* COPYRIGHT */}
+
+    <div className="mt-10 border-t border-black/[0.06] pt-6 text-center text-sm text-[#71717a] dark:border-white/[0.08] dark:text-[#a1a1aa]">
+      © {new Date().getFullYear()}{" "}
+      <span className="font-bold text-[#C8102E]">
+        YAKKAN EG
+      </span>{" "}
+      - جميع الحقوق محفوظة.
+    </div>
+  </div>
+</footer>
+
+
     </main>
   );
 }
 
-/* ============================================================
-   STAT
-============================================================ */
+// ============================================================
+// TYPES
+// ============================================================
+
+type GalleryImage = {
+  id: string;
+  url: string;
+  category: string;
+  createdAt?: string;
+  key?: string;
+};
+
+type GalleryCategoryOption = {
+  key: string;
+  label: string;
+};
+
+type Course = {
+  id: string;
+  image: string;
+  title: string;
+  doctor: string;
+  description: string;
+  rating: number;
+  reviews: number;
+  students: number;
+  __single?: boolean;
+};
+
+// ============================================================
+// STAT
+// ============================================================
 
 function Stat({
   icon,
@@ -821,7 +1512,7 @@ function Stat({
       }}
       className="flex items-center justify-center gap-3 border-black/5 px-5 py-5 dark:border-white/5 lg:border-l"
     >
-      <div className="text-[#d90429]">
+      <div className="text-[#C8102E] transition-transform duration-300 group-hover:scale-110">
         {icon}
       </div>
 
@@ -838,9 +1529,9 @@ function Stat({
   );
 }
 
-/* ============================================================
-   CATEGORY
-============================================================ */
+// ============================================================
+// CATEGORY
+// ============================================================
 
 function Category({
   icon,
@@ -854,9 +1545,9 @@ function Category({
       whileHover={{
         y: -5,
       }}
-      className="flex min-h-[95px] flex-col items-center justify-center rounded-xl bg-white p-4 shadow-sm transition hover:shadow-md dark:bg-[#18181b]"
+      className="group flex min-h-[108px] flex-col items-center justify-center rounded-2xl border border-black/[0.05] bg-white p-4 shadow-[0_8px_28px_rgba(24,24,27,0.045)] transition-all duration-300 hover:-translate-y-1 hover:border-[#C8102E]/15 hover:shadow-[0_16px_40px_rgba(24,24,27,0.08)] dark:border-white/[0.06] dark:bg-[#111216] dark:shadow-black/20"
     >
-      <div className="text-[#d90429]">
+      <div className="text-[#C8102E] transition-transform duration-300 group-hover:scale-110">
         {icon}
       </div>
 
@@ -867,9 +1558,9 @@ function Category({
   );
 }
 
-/* ============================================================
-   WHY CARD
-============================================================ */
+// ============================================================
+// WHY CARD
+// ============================================================
 
 function WhyCard({
   icon,
@@ -885,9 +1576,9 @@ function WhyCard({
       whileHover={{
         y: -5,
       }}
-      className="flex min-h-[140px] flex-col items-center justify-center rounded-xl bg-white px-4 py-6 text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)] dark:bg-[#18181b]"
+      className="group relative flex min-h-[155px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-black/[0.05] bg-white px-4 py-7 text-center shadow-[0_10px_35px_rgba(24,24,27,0.05)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[#C8102E]/15 hover:shadow-[0_18px_45px_rgba(24,24,27,0.09)] dark:border-white/[0.06] dark:bg-[#111216] dark:shadow-black/20"
     >
-      <div className="text-[#d90429]">
+      <div className="text-[#C8102E] transition-transform duration-300 group-hover:scale-110">
         {icon}
       </div>
 
@@ -900,9 +1591,9 @@ function WhyCard({
   );
 }
 
-/* ============================================================
-   STEP
-============================================================ */
+// ============================================================
+// STEP
+// ============================================================
 
 function Step({
   number,
@@ -918,9 +1609,9 @@ function Step({
       whileHover={{
         y: -4,
       }}
-      className="flex items-center gap-5 rounded-xl bg-white p-6 shadow-sm dark:bg-[#18181b]"
+      className="group flex items-center gap-5 rounded-2xl border border-black/[0.05] bg-white p-6 shadow-[0_10px_30px_rgba(24,24,27,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-[#C8102E]/15 hover:shadow-[0_18px_42px_rgba(24,24,27,0.08)] dark:border-white/[0.06] dark:bg-[#111216] dark:shadow-black/20"
     >
-      <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#d90429] text-2xl font-black text-white">
+      <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[#C8102E] text-2xl font-black text-white shadow-[0_10px_24px_rgba(200,16,46,0.22)]">
         {number}
       </div>
 
@@ -937,71 +1628,157 @@ function Step({
   );
 }
 
-/* ============================================================
-   COURSE CARD
-============================================================ */
+// ============================================================
+// COURSE CARD
+// ============================================================
 
 function CourseCard({
-  image,
-  title,
-  doctor,
+  course,
+  position,
+  onClick,
 }: {
-  image: string;
-  title: string;
-  doctor: string;
+  course: Course;
+  position: number;
+  onClick: () => void;
 }) {
+  const isCenter =
+    position === 1 || course.__single;
+
   return (
-    <motion.div
-      whileHover={{
-        y: -5,
-      }}
-      className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-sm transition hover:shadow-lg dark:border-white/10 dark:bg-[#18181b]"
+    <Link
+      href={`/courses/${course.id}`}
+      onClick={onClick}
+      className={`${
+        course.__single
+          ? "w-[74vw] max-w-[360px]"
+          : position === 1
+            ? "w-[74vw] max-w-[360px] md:w-[46%] lg:w-[390px]"
+            : "block w-[22vw] max-w-[120px] md:w-[31%] md:max-w-[330px]"
+      } shrink-0`}
     >
-      <div className="overflow-hidden">
-        <img
-          src={image}
-          alt={title}
-          className="aspect-[1.55] w-full object-cover transition duration-500 hover:scale-105"
-        />
-      </div>
+      <motion.article
+        animate={{
+          scale: isCenter ? 1.04 : 0.91,
+          opacity: isCenter ? 1 : 0.55,
+          y: isCenter ? -8 : 8,
+        }}
+        whileHover={{
+          scale: isCenter ? 1.06 : 0.94,
+          opacity: 1,
+          y: isCenter ? -12 : 4,
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 260,
+          damping: 24,
+        }}
+        className={`group relative flex h-[400px] flex-col overflow-hidden rounded-[26px] border bg-white shadow-[0_18px_50px_rgba(24,24,27,0.07)] dark:bg-[#111216] dark:shadow-black/25 ${
+          isCenter
+            ? "border-[#C8102E]/20 shadow-[0_28px_70px_rgba(200,16,46,0.16)] dark:border-[#C8102E]/30"
+            : "border-black/[0.06] dark:border-white/[0.07]"
+        }`}
+      >
+        <div className="relative shrink-0 overflow-hidden">
+          <img
+            src={course.image}
+            alt={course.title}
+            className="h-[175px] w-full object-cover transition duration-700 group-hover:scale-[1.05]"
+          />
 
-      <div className="p-4">
-        <h3 className="text-xl font-black">
-          {title}
-        </h3>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
 
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {doctor}
-        </p>
-
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <span className="flex items-center gap-1">
-            4.7
-
-            <Star className="size-4 fill-[#ffca28] text-[#ffca28]" />
-
-            <span>
-              (1670)
-            </span>
-          </span>
-
-          <span className="flex items-center gap-1">
-            <Users className="size-4 text-[#ffca28]" />
-            400 طالب
-          </span>
+          {isCenter && (
+            <div className="absolute right-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-black text-[#C8102E] shadow-lg backdrop-blur">
+              كورس مميز
+            </div>
+          )}
         </div>
 
-        <Button className="mt-4 w-full rounded-lg bg-[#d90429] font-bold text-white hover:bg-[#bd0324]">
-          اشترك الآن
-        </Button>
-      </div>
-    </motion.div>
+        <div className="flex flex-1 flex-col p-4">
+          <div>
+            <h3 className="line-clamp-2 min-h-[52px] text-lg font-black leading-6 tracking-tight">
+              {course.title}
+            </h3>
+
+            <p className="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
+              {course.doctor}
+            </p>
+
+            <p className="mt-2 line-clamp-2 min-h-[40px] text-xs leading-5 text-gray-600 dark:text-gray-400">
+              {course.description}
+            </p>
+          </div>
+
+          <div className="mt-auto">
+            <div className="mt-auto pt-3">
+              <div className="flex h-10 items-center justify-center rounded-xl bg-[#C8102E] text-sm font-black text-white shadow-[0_8px_24px_rgba(200,16,46,0.18)] transition-all group-hover:-translate-y-0.5 group-hover:bg-[#a80d27] group-hover:shadow-[0_12px_30px_rgba(200,16,46,0.24)]">
+                عرض الكورس
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.article>
+    </Link>
   );
 }
 
-/* ============================================================
-   APP BUTTON
-============================================================ */
+// ============================================================
+// VISIBLE COURSES
+// ============================================================
+
+function getVisibleCourses(
+  courses: Course[],
+  currentIndex: number
+) {
+  if (courses.length === 1) {
+    return [
+      {
+        ...courses[0],
+        __single: true,
+      },
+    ];
+  }
+
+  if (courses.length === 2) {
+    const current =
+      courses[currentIndex];
+
+    const other =
+      courses[
+        (currentIndex + 1) %
+          courses.length
+      ];
+
+    return [
+      {
+        ...other,
+        __single: false,
+      },
+      {
+        ...current,
+        __single: true,
+      },
+    ];
+  }
+
+  return [
+    courses[
+      (currentIndex - 1 + courses.length) %
+        courses.length
+    ],
+
+    courses[currentIndex],
+
+    courses[
+      (currentIndex + 1) %
+        courses.length
+    ],
+  ];
+}
+
+// ============================================================
+// APP BUTTON
+// ============================================================
 
 function AppButton({
   icon,
@@ -1013,7 +1790,7 @@ function AppButton({
   return (
     <button
       type="button"
-      className="flex items-center gap-2 rounded-lg border-2 border-[#d90429] px-6 py-2.5 text-[#d90429] transition hover:bg-[#d90429]/5 dark:text-[#ff4d6d]"
+      className="flex items-center gap-2 rounded-xl border border-black/10 bg-white px-6 py-3 text-[#18181b] shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#C8102E]/25 hover:text-[#C8102E] hover:shadow-md dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:border-[#C8102E]/30 dark:hover:text-[#ff5a73]"
     >
       {icon}
 
@@ -1024,88 +1801,15 @@ function AppButton({
   );
 }
 
-/* ============================================================
-   SOCIAL ICON
-============================================================ */
 
-function SocialIcon({
-  icon,
-}: {
-  icon: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      className="flex size-10 items-center justify-center rounded-full bg-[#fafafa] transition hover:bg-[#d90429] hover:text-white dark:bg-[#18181b]"
-    >
-      {icon}
-    </button>
-  );
-}
 
-/* ============================================================
-   FOOTER LINK
-============================================================ */
 
-function FooterLink({
-  href,
-  text,
-}: {
-  href: string;
-  text: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="mt-3 block text-sm text-gray-600 transition hover:text-[#d90429] dark:text-gray-400"
-    >
-      {text}
-    </Link>
-  );
-}
 
-/* ============================================================
-   CONTACT ROW
-============================================================ */
 
-function ContactRow({
-  icon,
-  text,
-}: {
-  icon: React.ReactNode;
-  text: string;
-}) {
-  return (
-    <div className="mt-5 flex items-center gap-3 text-sm">
-      <span className="flex size-9 items-center justify-center rounded-full bg-[#fafafa] text-[#d90429] dark:bg-[#18181b]">
-        {icon}
-      </span>
 
-      <span dir="ltr">
-        {text}
-      </span>
-    </div>
-  );
-}
-
-/* ============================================================
-   PHONE ICON
-============================================================ */
-
-function PhoneIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className="size-4"
-    >
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92z" />
-    </svg>
-  );
-}
+// ============================================================
+// FACEBOOK ICON
+// ============================================================
 
 function FacebookIcon() {
   return (
@@ -1121,23 +1825,9 @@ function FacebookIcon() {
   );
 }
 
-function YoutubeIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className="size-5"
-      aria-hidden="true"
-    >
-      <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z" />
-    </svg>
-  );
-}
-
-/* ============================================================
-   SECTION TITLE
-============================================================ */
+// ============================================================
+// SECTION TITLE
+// ============================================================
 
 function SectionTitle({
   title,
@@ -1160,6 +1850,167 @@ function SectionTitle({
     </h2>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // "use client";
 
