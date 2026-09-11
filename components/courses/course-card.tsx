@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link"
@@ -44,14 +43,8 @@ export interface CourseCardData {
 // HELPERS
 // ============================================================
 
-function getImageUrl(
-  course: CourseCardData
-) {
-  return (
-    course.image ??
-    course.mediaUrl ??
-    null
-  )
+function getImageUrl(course: CourseCardData) {
+  return course.image ?? course.mediaUrl ?? null
 }
 
 // ============================================================
@@ -65,18 +58,17 @@ export default function CourseCard({
 }) {
   const imageUrl = getImageUrl(course)
 
-  const chaptersCount =
-    course.chaptersCount ?? 0
-
-  const lessonsCount =
-    course.lessonsCount ?? 0
+  const chaptersCount = course.chaptersCount ?? 0
+  const lessonsCount = course.lessonsCount ?? 0
 
   return (
     <Link
       href={`/courses/${course.id}`}
       className="
         group
-        block
+        flex
+        h-full
+        flex-col
         overflow-hidden
         rounded-[22px]
         border
@@ -99,6 +91,7 @@ export default function CourseCard({
           relative
           aspect-[16/9]
           w-full
+          shrink-0
           overflow-hidden
           bg-muted
         "
@@ -288,7 +281,15 @@ export default function CourseCard({
       {/* CONTENT */}
       {/* ====================================================== */}
 
-      <div className="p-5 sm:p-6">
+      <div
+        className="
+          flex
+          flex-1
+          flex-col
+          p-5
+          sm:p-6
+        "
+      >
         {/* TITLE */}
 
         <h3
@@ -310,20 +311,33 @@ export default function CourseCard({
 
         {/* DESCRIPTION */}
 
-        {course.description && (
-          <p
-            className="
-              mt-2.5
-              line-clamp-2
-              min-h-[3rem]
-              text-sm
-              leading-6
-              text-muted-foreground
-            "
-          >
-            {course.description}
-          </p>
-        )}
+        <div className="mt-2.5 min-h-[3rem]">
+          {course.description ? (
+            <p
+              className="
+                line-clamp-2
+                text-sm
+                leading-6
+                text-muted-foreground
+              "
+            >
+              {course.description}
+            </p>
+          ) : (
+            <p
+              className="
+                line-clamp-2
+                text-sm
+                leading-6
+                text-transparent
+                select-none
+              "
+              aria-hidden="true"
+            >
+              —
+            </p>
+          )}
+        </div>
 
         {/* META */}
 
@@ -411,55 +425,54 @@ export default function CourseCard({
 
         {/* ACADEMIC INFO */}
 
-        {(course.academicLevelLabel ||
-          course.secondaryTrackLabel) && (
-          <div
-            className="
-              mt-4
-              flex
-              flex-wrap
-              gap-2
-            "
-          >
-            {course.academicLevelLabel && (
-              <span
-                className="
-                  rounded-lg
-                  bg-muted
-                  px-2.5
-                  py-1.5
-                  text-[10px]
-                  font-bold
-                  text-muted-foreground
-                "
-              >
-                {course.academicLevelLabel}
-              </span>
-            )}
+        <div
+          className="
+            mt-4
+            min-h-[2rem]
+            flex
+            flex-wrap
+            gap-2
+          "
+        >
+          {course.academicLevelLabel && (
+            <span
+              className="
+                rounded-lg
+                bg-muted
+                px-2.5
+                py-1.5
+                text-[10px]
+                font-bold
+                text-muted-foreground
+              "
+            >
+              {course.academicLevelLabel}
+            </span>
+          )}
 
-            {course.secondaryTrackLabel && (
-              <span
-                className="
-                  rounded-lg
-                  bg-muted
-                  px-2.5
-                  py-1.5
-                  text-[10px]
-                  font-bold
-                  text-muted-foreground
-                "
-              >
-                {course.secondaryTrackLabel}
-              </span>
-            )}
-          </div>
-        )}
+          {course.secondaryTrackLabel && (
+            <span
+              className="
+                rounded-lg
+                bg-muted
+                px-2.5
+                py-1.5
+                text-[10px]
+                font-bold
+                text-muted-foreground
+              "
+            >
+              {course.secondaryTrackLabel}
+            </span>
+          )}
+        </div>
 
         {/* FOOTER */}
 
         <div
           className="
-            mt-5
+            mt-auto
+            pt-5
             flex
             items-center
             justify-between
@@ -524,28 +537,3 @@ export default function CourseCard({
     </Link>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

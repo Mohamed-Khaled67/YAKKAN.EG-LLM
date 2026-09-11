@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -259,10 +260,6 @@ export default function ProfilePage() {
 
   const user = session?.user
 
-  /*
-   * نستخدم cast بسيط هنا حتى لو role غير موجود
-   * في TypeScript type الخاص بـ Better Auth.
-   */
   const userRole = (
     user as
       | {
@@ -309,36 +306,106 @@ export default function ProfilePage() {
 
         <div className="mx-auto flex h-[76px] max-w-[1250px] items-center justify-between px-5 lg:px-10">
 
-          {/* LOGO */}
+          {/* ====================================================
+              LOGO — SAME AS NAVBAR
+          ==================================================== */}
 
           <Link
             href="/"
-            className="flex items-center gap-3 transition-opacity hover:opacity-80"
+            className="
+              group
+              relative
+              flex
+              shrink-0
+              items-center
+              gap-2.5
+            "
           >
 
-            <div className="size-10 overflow-hidden rounded-full border-4 border-transparent">
+            {/* Logo */}
+
+            <div
+              className="
+                relative
+                flex
+                size-10
+                shrink-0
+                items-center
+                justify-center
+                overflow-hidden
+                rounded-xl
+                border
+                border-red-500/15
+                bg-background
+                p-1
+                shadow-lg
+                shadow-red-500/10
+                transition-all
+                duration-300
+                group-hover:scale-105
+                group-hover:border-red-500/30
+                group-hover:shadow-xl
+                group-hover:shadow-red-500/20
+              "
+            >
+
+              <div
+                className="
+                  absolute
+                  inset-0
+                  rounded-xl
+                  bg-gradient-to-br
+                  from-red-500/20
+                  via-rose-500/10
+                  to-orange-500/20
+                "
+              />
+
               <img
                 src="/myLogo.png"
-                alt="YAKKAN EG"
-                className="size-full object-contain"
+                alt="YAKKAN-EG"
+                className="
+                  relative
+                  z-10
+                  size-full
+                  rounded-lg
+                  object-cover
+                "
               />
+
             </div>
 
-            <div>
+            {/* Brand */}
 
-              <p className="text-lg font-black tracking-tight text-[#C8102E]">
-                YAKKAN EG
-              </p>
+            <div className="hidden sm:block">
 
-              <p className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">
-                منصة تعليمية متكاملة
-              </p>
+              <div
+                className="
+                  bg-gradient-to-l
+                  from-red-500
+                  via-rose-500
+                  to-orange-500
+                  bg-clip-text
+                  text-sm
+                  font-black
+                  tracking-[0.12em]
+                  text-transparent
+                "
+              >
+                YAKKAN-EG
+              </div>
+
+              <div className="text-[9px] text-muted-foreground">
+                تعلم • تطور • استمتع
+              </div>
 
             </div>
 
           </Link>
 
-          {/* HOME */}
+          {/* ====================================================
+              HOME
+          ==================================================== */}
 
           <Link
             href="/"
@@ -370,19 +437,13 @@ export default function ProfilePage() {
 
         <section className="relative overflow-hidden rounded-[30px] border border-black/[0.06] bg-white shadow-[0_20px_60px_rgba(24,24,27,0.06)] dark:border-white/[0.07] dark:bg-[#111216]">
 
-          {/* RED LINE */}
-
           <div className="absolute right-0 top-0 h-full w-1.5 bg-[#C8102E]" />
 
           <div className="relative p-6 sm:p-8 lg:p-10">
 
             <div className="flex flex-col gap-7 sm:flex-row sm:items-center sm:justify-between">
 
-              {/* USER */}
-
               <div className="flex items-center gap-5">
-
-                {/* AVATAR */}
 
                 <div className="relative shrink-0">
 
@@ -403,15 +464,11 @@ export default function ProfilePage() {
 
                   </div>
 
-                  {/* VERIFIED */}
-
                   <div className="absolute bottom-0 left-0 flex size-6 items-center justify-center rounded-full border-2 border-white bg-[#C8102E] dark:border-[#111216]">
                     <CheckCircle2 className="size-3.5 text-white" />
                   </div>
 
                 </div>
-
-                {/* INFO */}
 
                 <div className="min-w-0">
 
@@ -421,8 +478,6 @@ export default function ProfilePage() {
                       {user?.name ||
                         "مستخدم YAKKAN EG"}
                     </h1>
-
-                    {/* ROLE */}
 
                     <span className="rounded-full bg-[#C8102E]/10 px-2.5 py-1 text-[10px] font-black text-[#C8102E]">
                       {isAdmin
@@ -451,8 +506,6 @@ export default function ProfilePage() {
 
               </div>
 
-              {/* PROFILE LABEL */}
-
               <div className="hidden rounded-2xl border border-black/[0.06] bg-zinc-50 px-5 py-4 text-center dark:border-white/[0.07] dark:bg-white/[0.03] sm:block">
 
                 <p className="text-[11px] font-bold text-zinc-400">
@@ -476,8 +529,6 @@ export default function ProfilePage() {
 
         <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
 
-          {/* TOTAL */}
-
           <ProfileStat
             icon={<BookOpen />}
             title="كورساتي"
@@ -485,16 +536,12 @@ export default function ProfilePage() {
             description="الكورسات المشترك فيها"
           />
 
-          {/* COMPLETED */}
-
           <ProfileStat
             icon={<Trophy />}
             title="مكتملة"
             value={stats.completedCourses}
             description="كورسات أنهيتها بالكامل"
           />
-
-          {/* PROGRESS */}
 
           <ProfileStat
             icon={<CheckCircle2 />}
@@ -534,16 +581,12 @@ export default function ProfilePage() {
             }`}
           >
 
-            {/* HOME */}
-
             <QuickAccessCard
               href="/"
               icon={<Home />}
               title="الرئيسية"
               description="الصفحة الرئيسية"
             />
-
-            {/* COURSES */}
 
             <QuickAccessCard
               href="/courses"
@@ -552,24 +595,7 @@ export default function ProfilePage() {
               description="استكشف الكورسات"
             />
 
-            {/* PROFILE / MY COURSES */}
-
-            <QuickAccessCard
-              href="/profile"
-              icon={<GraduationCap />}
-              title={
-                isAdmin
-                  ? "الملف الشخصي"
-                  : "كورساتي"
-              }
-              description={
-                isAdmin
-                  ? "ملفك الشخصي"
-                  : `${stats.totalCourses} كورس مشترك فيه`
-              }
-            />
-
-            {/* ADMIN */}
+            
 
             {isAdmin && (
               <QuickAccessCard
@@ -672,10 +698,6 @@ export default function ProfilePage() {
 
           </div>
 
-          {/* ====================================================
-              EMPTY STATE
-          ==================================================== */}
-
           {courses.length === 0 ? (
 
             <div className="rounded-[28px] border-2 border-dashed border-black/[0.08] bg-white px-6 py-16 text-center dark:border-white/[0.08] dark:bg-[#111216]">
@@ -705,10 +727,6 @@ export default function ProfilePage() {
 
           ) : (
 
-            /* ==================================================
-               COURSES GRID
-            ================================================== */
-
             <div className="grid gap-5 md:grid-cols-2">
 
               {courses.map((item) => {
@@ -721,10 +739,6 @@ export default function ProfilePage() {
                     key={item.enrollmentId}
                     className="group overflow-hidden rounded-[26px] border border-black/[0.06] bg-white shadow-[0_12px_35px_rgba(24,24,27,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(24,24,27,0.09)] dark:border-white/[0.07] dark:bg-[#111216]"
                   >
-
-                    {/* ==========================================
-                        IMAGE
-                    ========================================== */}
 
                     <Link
                       href={getCourseUrl(
@@ -753,8 +767,6 @@ export default function ProfilePage() {
 
                       )}
 
-                      {/* STATUS */}
-
                       <div className="absolute right-4 top-4">
 
                         {isCompleted ? (
@@ -779,19 +791,11 @@ export default function ProfilePage() {
 
                     </Link>
 
-                    {/* ==========================================
-                        BODY
-                    ========================================== */}
-
                     <div className="p-5 sm:p-6">
-
-                      {/* SUBJECT */}
 
                       <p className="text-[11px] font-black text-[#C8102E]">
                         {item.course.subject.name}
                       </p>
-
-                      {/* TITLE */}
 
                       <Link
                         href={getCourseUrl(
@@ -802,8 +806,6 @@ export default function ProfilePage() {
                           {item.course.title}
                         </h3>
                       </Link>
-
-                      {/* PROGRESS INFO */}
 
                       <div className="mt-5">
 
@@ -848,8 +850,6 @@ export default function ProfilePage() {
 
                       </div>
 
-                      {/* LAST LESSON */}
-
                       <div className="mt-5 rounded-2xl bg-zinc-50 p-4 dark:bg-white/[0.035]">
 
                         <div className="flex items-start gap-3">
@@ -882,10 +882,6 @@ export default function ProfilePage() {
                         </div>
 
                       </div>
-
-                      {/* ========================================
-                          ACTION
-                      ======================================== */}
 
                       {isCompleted ? (
 
